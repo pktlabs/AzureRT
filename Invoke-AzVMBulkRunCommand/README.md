@@ -2,7 +2,7 @@
 **(PowerShell 7+) Bulk Command Execution for Azure Virtual Machines**
 > [!NOTE]
 > - Compatible with non-Windows PowerShell (pwsh)
-> - +40% speed increase compared to sequential AzVMRunCommands
+> - Significant speed increase compared to sequential AzVMRunCommand execution
 > - Az SDK wrapper 🌯
 > - Inspired by @kfosaaen's work on Microburst (Windows-Native Toolkit) [https://github.com/NetSPI/MicroBurst/commits?author=kfosaaen](https://github.com/NetSPI/MicroBurst/blob/master/AzureRM/Invoke-AzureRmVMBulkCMD.ps1)
 
