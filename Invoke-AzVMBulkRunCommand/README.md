@@ -31,6 +31,10 @@ These supporting scripts are essential for the functionality of `Invoke-AzVMBulk
 5. Execute the script using the following syntax to execute on either (1) all VMs, (2) all VMs within specific Subscription(s), or (3) all VMs within a specific Resource Group + Subscription:  
 
    ```powershell
+   git clone https://github.com/fjodoin/AzureRT.git
+   cd Invoke-AzVMBulkRunCommand
+
+   # Using PowerShell (pwsh) 7+   
    .\Invoke-AzVMBulkRunCommand.ps1
    .\Invoke-AzVMBulkRunCommand.ps1 -SubscriptionIds <subscriptionId1>,<subscriptionId2>
    .\Invoke-AzVMBulkRunCommand.ps1 -SubscriptionIds <subscriptionId1> -ResourceGroup <resourceGroup>
