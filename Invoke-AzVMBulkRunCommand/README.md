@@ -1,5 +1,7 @@
 # Invoke-AzVMBulkRunCommand.ps1  
-**Bulk Command Execution for Azure Virtual Machines**  
+**Bulk Command Execution for Azure Virtual Machines**
+> [!NOTE]
+> +40% speed increase compared to sequential AzVMRunCommands
 
 ---
 
