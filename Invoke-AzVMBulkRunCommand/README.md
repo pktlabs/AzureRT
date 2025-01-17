@@ -32,7 +32,7 @@ These supporting scripts are essential for the functionality of `Invoke-AzVMBulk
 
    ```powershell
    git clone https://github.com/fjodoin/AzureRT.git
-   cd Invoke-AzVMBulkRunCommand
+   cd ./AzureRT/Invoke-AzVMBulkRunCommand
 
    # Using PowerShell (pwsh) 7+   
    .\Invoke-AzVMBulkRunCommand.ps1
