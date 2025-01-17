@@ -25,17 +25,28 @@ These supporting scripts are essential for the functionality of `Invoke-AzVMBulk
 
 ## Usage  
 1. Clone or download this repository.  
-2. Ensure the `Scripts` directory is in place with the required scripts (`Invoke-WindowsScript.ps1` and `run_linux_script.sh`) inside it.  
-3. Adjust the `Scripts` to perform desired tasks.
-4. Open a PowerShell session.  
-5. Execute the script using the following syntax to execute on either (1) all VMs, (2) all VMs within specific Subscription(s), or (3) all VMs within a specific Resource Group + Subscription:  
+2. Change into the according directory.  
+3. (Optional) Adjust the `Scripts` to perform desired tasks.
+4. Fire-up a PowerShell 7+ session  
 
    ```powershell
    git clone https://github.com/fjodoin/AzureRT.git
    cd ./AzureRT/Invoke-AzVMBulkRunCommand
+   pwsh
+   ```
 
-   # Using PowerShell (pwsh) 7+   
+   ![image](https://github.com/user-attachments/assets/9b37ad3a-f423-4ab6-b887-7856aa597a41)
+
+5. Run the script using the following syntax to execute on either;
+   - (1) all VMs;
+   - (2) all VMs within a specific or several Subscriptions; or
+   - (3) all VMs within a specific Resource Group + Subscription.
+
+   ```powershell
    .\Invoke-AzVMBulkRunCommand.ps1
    .\Invoke-AzVMBulkRunCommand.ps1 -SubscriptionIds <subscriptionId1>,<subscriptionId2>
    .\Invoke-AzVMBulkRunCommand.ps1 -SubscriptionIds <subscriptionId1> -ResourceGroup <resourceGroup>
    ```
+
+   ![image](https://github.com/user-attachments/assets/8a512b7c-85c5-4ab1-a173-4ba68c1863e1)
+
