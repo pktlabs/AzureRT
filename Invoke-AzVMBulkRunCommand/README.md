@@ -21,7 +21,7 @@ To use this script, you need the following:
 ![image](https://github.com/user-attachments/assets/0e0916c7-aff5-4f6a-a0f8-8ff0c391c3db)
 
 
-These supporting scripts are essential for the functionality of `Invoke-AzVMBulkRunCommand.ps1`.  
+These supporting scripts are essential for the functionality of `Invoke-AzVMBulkRunCommand.ps1`: templates are included in the repository.  
 
 ## Usage  
 1. Clone or download this repository.  
