@@ -2,6 +2,7 @@
 **Bulk Command Execution for Azure Virtual Machines**
 > [!NOTE]
 > +40% speed increase compared to sequential AzVMRunCommands
+> Az SDK wrapper 🌯
 
 ---
 
@@ -11,8 +12,9 @@ The `Invoke-AzVMBulkRunCommand.ps1` script is designed to automate the execution
 ## Prerequisites  
 To use this script, you need the following:  
 
-1. **Scripts Directory**: Ensure that a directory named `Scripts` is present in the same folder as `Invoke-AzVMBulkRunCommand.ps1`.  
-2. **Required Scripts** (located in the `Scripts` directory):  
+1. **Az PowerShell SDK**: Authenticate with `Connect-AzAccount` before launching `Invoke-WindowsScript.ps1`.
+2. **Scripts Directory**: Ensure that a directory named `Scripts` is present in the same folder as `Invoke-AzVMBulkRunCommand.ps1`.  
+3. **Required Scripts** (located in the `Scripts` directory):  
    - `Invoke-WindowsScript.ps1`: Handles the execution of commands on Windows VMs.  
    - `run_linux_script.sh`: Handles the execution of commands on Linux VMs.
   
