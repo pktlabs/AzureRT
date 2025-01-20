@@ -6,9 +6,9 @@
     This script connects to Azure, retrieves all enabled subscriptions, and lists the public access levels of all blob containers in each storage account within those subscriptions.
 
 .NOTES
-    Author: Your Name
-    Date: Today's Date
-    Version: 1.0
+    Author: Filip Jodoin
+    Date: Jan. 20, 2025
+    Version: 0.0
 
 .EXAMPLE
     .\Invoke-AzBlobListPublicAccess.ps1
