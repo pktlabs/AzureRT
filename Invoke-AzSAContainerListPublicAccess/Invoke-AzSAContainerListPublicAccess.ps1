@@ -116,6 +116,6 @@ foreach ($job in $jobs) {
 
 # Output results
 Write-Host "Results:" -ForegroundColor Green
-$finalResults | Format-Table -AutoSize
+$finalResults | Select-Object SubscriptionName, StorageAccountName, ResourceGroupName, ContainerName, PublicAccessLevel
 
 Write-Host "`nAll subscriptions processed." -ForegroundColor Green
