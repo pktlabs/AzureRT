@@ -17,7 +17,7 @@
 # Connect to Azure
 # Connect-AzAccount
 
-Write-Host "Script execution started." -ForegroundColor Green
+Write-Host "Script execution started: any hits will be displayed below ..." -ForegroundColor Green
 
 # Get the subscriptions
 $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq 'Enabled' }
