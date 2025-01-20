@@ -25,7 +25,8 @@ To use this script, you need the following:
    pwsh
    ```
 
-   ![image](https://github.com/user-attachments/assets/7509e3c9-a565-4077-a992-8a248f322b6b)
+   ![image](https://github.com/user-attachments/assets/7421624a-0d53-4d9f-86eb-cf3370624d42)
+
 
 - Run the script
 
@@ -33,6 +34,7 @@ To use this script, you need the following:
    .\Invoke-AzSAContainerListPublicAccess.ps1
    ```
 
-   ![image](https://github.com/user-attachments/assets/e5a6a567-220f-464c-adec-9d648d657ec0)
+   ![image](https://github.com/user-attachments/assets/3b37adbd-490d-4d23-96ab-5a35a9d655e5)
+
 
 
