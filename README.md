@@ -3,6 +3,10 @@
 
 ---
 
+![image](https://github.com/user-attachments/assets/8e68f06d-d2b4-4711-a326-9875818823d0)
+
+---
+
 ## Introduction  
 Azure Research Toolkit (AzureRT) is a collection of scripts designed to assist with **Offensive, Defensive, and Integrated Cloud Security** in the Azure. Whether you're conducting security assessments, reinforcing your cloud defenses, or integrating security practices across your Azure infrastructure, this repository provides tools to streamline your efforts.  
 
