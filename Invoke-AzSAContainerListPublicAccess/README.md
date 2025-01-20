@@ -1,4 +1,4 @@
-# Invoke-AzBlobListPublicAccess.ps1  
+# Invoke-AzSAContainerListPublicAccess.ps1  
 **(PowerShell 7+) List Azure Storage Account Container and Blob Public Access**
 > [!NOTE]
 > - Compatible with non-Windows PowerShell (pwsh)
@@ -7,12 +7,12 @@
 ---
 
 ## Overview  
-The `Invoke-AzBlobListPublicAccess.ps1` script is designed to automate the execution of commands across multiple Azure Storage Accounts (SAs). This script will use Role-Base Access Control (RBAC) access (as opposed to Key-Authentication, as this may be disabled) to query access control configurations on Storage Account Containers and Blobs.  
+The `Invoke-AzSAContainerListPublicAccess.ps1` script is designed to automate the execution of commands across multiple Azure Storage Accounts (SAs). This script will use Role-Base Access Control (RBAC) access (as opposed to Key-Authentication, as this may be disabled) to query access control configurations on Storage Account Containers and Blobs.  
 
 ## Prerequisites  
 To use this script, you need the following:  
 
-- **Az PowerShell SDK**: Authenticate with `Connect-AzAccount` before launching `Invoke-AzBlobListPublicAccess.ps1`.
+- **Az PowerShell SDK**: Authenticate with `Connect-AzAccount` before launching `Invoke-AzSAContainerListPublicAccess.ps1`.
   
 ## Usage  
 1. Clone or download this repository.  
@@ -21,7 +21,7 @@ To use this script, you need the following:
 
    ```powershell
    git clone https://github.com/fjodoin/AzureRT.git
-   cd ./AzureRT/Invoke-AzBlobListPublicAccess
+   cd ./AzureRT/Invoke-AzSAContainerListPublicAccess
    pwsh
    ```
 
@@ -30,7 +30,7 @@ To use this script, you need the following:
 - Run the script
 
    ```powershell
-   .\Invoke-AzBlobListPublicAccess.ps1
+   .\Invoke-AzSAContainerListPublicAccess.ps1
    ```
 
    ![image](https://github.com/user-attachments/assets/e5a6a567-220f-464c-adec-9d648d657ec0)
