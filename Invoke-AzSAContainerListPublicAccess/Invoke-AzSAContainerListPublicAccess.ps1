@@ -8,7 +8,7 @@
 .NOTES
     Author: Filip Jodoin
     Date: Jan. 20, 2025
-    Version: 1.3
+    Version: 0.0
 
 .EXAMPLE
     .\Invoke-AzSAContainerListPublicAccess.ps1
