@@ -1,14 +1,14 @@
 <#
 .SYNOPSIS
-    Lists the public access levels of Azure Blob containers across all subscriptions.
+    Lists the public access levels of Azure Blob containers across all subscriptions in parallel.
 
 .DESCRIPTION
-    This script connects to Azure, retrieves all enabled subscriptions, and lists the public access levels of all blob containers in each storage account within those subscriptions.
+    This script connects to Azure, retrieves all enabled subscriptions, and lists the public access levels of all blob containers in each storage account within those subscriptions. It uses parallel processing to speed up execution.
 
 .NOTES
     Author: Filip Jodoin
     Date: Jan. 20, 2025
-    Version: 0.0
+    Version: 1.3
 
 .EXAMPLE
     .\Invoke-AzSAContainerListPublicAccess.ps1
@@ -27,51 +27,95 @@ if (-not $subscriptions) {
     return
 }
 
-# Initialize an array to hold the results
-$results = @()
+# Filter out invalid subscriptions with missing IDs
+$validSubscriptions = $subscriptions | Where-Object { $_.Id -ne $null -and $_.Id -ne "" }
 
-# Loop through each subscription
-foreach ($subscription in $subscriptions) {
-    $null = Set-AzContext -SubscriptionId $subscription.Id
+if (-not $validSubscriptions) {
+    Write-Host "No valid subscriptions found." -ForegroundColor Yellow
+    return
+}
 
-    # Get the storage accounts
-    $storageAccounts = Get-AzStorageAccount | Select-Object StorageAccountName, ResourceGroupName
+# Define a script block for job processing
+$scriptBlock = {
+    param(
+        $subscription
+    )
 
-    if (-not $storageAccounts) {
-        continue
+    # Import required modules in the job
+    Import-Module Az.Accounts
+    Import-Module Az.Storage
+
+    if (-not $subscription.Id) {
+        Write-Host "Skipping subscription with missing ID: $($subscription.Name)" -ForegroundColor Red
+        return
     }
 
-    # Loop through each storage account
-    foreach ($storageAccount in $storageAccounts) {
-        $accountName = $storageAccount.StorageAccountName
-        $resourceGroup = $storageAccount.ResourceGroupName
+    $null = Set-AzContext -SubscriptionId $subscription.Id
 
-        # Set the context to use EntraID authentication
-        $context = New-AzStorageContext -StorageAccountName $accountName -UseConnectedAccount
+    # Get storage accounts
+    $storageAccounts = Get-AzStorageAccount | Select-Object StorageAccountName, ResourceGroupName
 
-        # List containers in the storage account
-        $containers = Get-AzStorageContainer -Context $context | Select-Object Name
+    $resultList = @()
 
-        if ($containers) {
-            foreach ($container in $containers) {
-                # Check the public access level of the container
-                $publicAccessLevel = (Get-AzStorageContainerAcl -Name $container.Name -Context $context).PublicAccess
+    if ($storageAccounts) {
+        foreach ($storageAccount in $storageAccounts) {
+            $accountName = $storageAccount.StorageAccountName
+            $resourceGroup = $storageAccount.ResourceGroupName
 
-                if ($publicAccessLevel) {
-                    # Create a custom object for the result
-                    $result = [PSCustomObject]@{
-                        SubscriptionName    = $subscription.Name
-                        StorageAccountName  = $accountName
-                        ResourceGroupName   = $resourceGroup
-                        ContainerName       = $container.Name
-                        PublicAccessLevel   = $publicAccessLevel
+            # Set the context to use EntraID authentication
+            $context = New-AzStorageContext -StorageAccountName $accountName -UseConnectedAccount
+
+            # List containers
+            $containers = Get-AzStorageContainer -Context $context | Select-Object Name
+
+            if ($containers) {
+                foreach ($container in $containers) {
+                    # Check public access level
+                    $publicAccessLevel = (Get-AzStorageContainerAcl -Name $container.Name -Context $context).PublicAccess
+
+                    if ($publicAccessLevel) {
+                        $resultList += [PSCustomObject]@{
+                            SubscriptionName    = $subscription.Name
+                            StorageAccountName  = $accountName
+                            ResourceGroupName   = $resourceGroup
+                            ContainerName       = $container.Name
+                            PublicAccessLevel   = $publicAccessLevel
+                        }
                     }
-                    # Output Results
-                    $result
                 }
             }
         }
     }
+
+    # Return the result list
+    return $resultList
 }
+
+# Start jobs for each valid subscription
+$jobs = @()
+foreach ($subscription in $validSubscriptions) {
+    $jobs += Start-Job -ScriptBlock $scriptBlock -ArgumentList $subscription
+}
+
+# Wait for all jobs to complete
+Write-Host "Waiting for all jobs to complete..." -ForegroundColor Yellow
+$null = $jobs | ForEach-Object { Wait-Job -Job $_ }
+
+# Collect results from all jobs
+$finalResults = @()
+foreach ($job in $jobs) {
+    # Check if job is completed before receiving and removing
+    if ($job.State -eq 'Completed') {
+        $finalResults += Receive-Job -Job $job
+        # Clean up completed job
+        Remove-Job -Job $job
+    } else {
+        Write-Host "Job with ID $($job.Id) is not finished, skipping removal." -ForegroundColor Red
+    }
+}
+
+# Output results
+Write-Host "Results:" -ForegroundColor Green
+$finalResults | Format-Table -AutoSize
 
 Write-Host "`nAll subscriptions processed." -ForegroundColor Green
