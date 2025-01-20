@@ -12,3 +12,4 @@ Below is a table of tools and scripts included in this repository, along with th
 |Tool/Script Name|Description|Link|
 |---|---|---|
 |**Invoke-AzVMBulkRunCommand.ps1**|Automates bulk execution of commands across multiple Azure Virtual Machines|[Invoke-AzVMBulkRunCommand](./Invoke-AzVMBulkRunCommand)|
+|**Invoke-AzBlobListPublicAccess.ps1**|Find and List all Storage Accounts for Public Containers and Blobs|[Invoke-AzBlobListPublicAccess](./Invoke-AzBlobListPublicAccess)|
