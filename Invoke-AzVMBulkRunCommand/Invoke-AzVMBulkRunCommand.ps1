@@ -10,6 +10,11 @@ Runs custom scripts on all running Azure VMs in specified subscriptions and reso
 .DESCRIPTION
 This script connects to the specified Azure subscriptions, retrieves all VMs that are in the "running" state, and executes either a PowerShell or Bash script depending on the operating system type of each VM. If no resource group is specified, it scans all VMs in the subscriptions.
 
+.NOTES
+    Author: Filip Jodoin
+    Date: Jan. 14, 2025
+    Version: 0.0
+
 .PARAMETER SubscriptionIds
 (Optional) The IDs of the Azure subscriptions to use. If not provided, all subscriptions will be scanned.
 
