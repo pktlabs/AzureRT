@@ -14,6 +14,7 @@ The `azure_resource_graph.py` script is designed build a graph-view of Node-Edge
 To use this script, you need the following:
 
 - **az cli**: Authenticate with `az login` before launching `azure_resource_graph.py`.
+- **Azure RBAC Reader**: The identity to use with the `az cli` requires atleast "Reader" on the subscriptions in-scope.
 
 ## Usage
 
