@@ -8,7 +8,7 @@
 ---
 
 ## Overview  
-The `azure_resource_graph.py` script is designed build a graph-view of Node-Edge relationships across multiple Azure resources to help shed light on potential blindspots, such as Azure Key Vault "Access Policies", and Storage Account Access Control.  
+The `azure_resource_graph.py` script is designed build a graph-view of Node-Edge relationships across multiple Azure resources to help shed light on potential blindspots, such as Storage Account access control.  
 
 ## Prerequisites  
 To use this script, you need the following:
