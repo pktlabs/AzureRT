@@ -28,7 +28,8 @@ To use this script, you need the following:
   pwsh
   ```
 
-  [image]
+  ![image](https://github.com/user-attachments/assets/e12868a8-1096-4aa6-8a70-4f771902acd3)
+
 
   ```powershell
   # 4. Run the script 
