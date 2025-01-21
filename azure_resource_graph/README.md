@@ -8,12 +8,12 @@
 ---
 
 ## Overview  
-The `build_azure_resource_graph.py` script is designed build a graph-view of Node-Edge relationships across multiple Azure resources to help shed light on potential blindspots, such as Azure Key Vault "Access Policies", and Storage Account Access Control.  
+The `azure_resource_graph.py` script is designed build a graph-view of Node-Edge relationships across multiple Azure resources to help shed light on potential blindspots, such as Azure Key Vault "Access Policies", and Storage Account Access Control.  
 
 ## Prerequisites  
 To use this script, you need the following:
 
-- **az cli**: Authenticate with `az login` before launching `build_azure_resource_graph.py`.
+- **az cli**: Authenticate with `az login` before launching `azure_resource_graph.py`.
 
 ## Usage  
 1. Clone or download this repository.  
@@ -33,9 +33,7 @@ To use this script, you need the following:
 5. Run the script:
    
    ```powershell
-   .\build_azure_resource_graph.py
-   .\build_azure_resource_graph.py -SubscriptionIds <subscriptionId1>,<subscriptionId2>
-   .\build_azure_resource_graph.py -SubscriptionIds <subscriptionId1> -ResourceGroup <resourceGroup>
+   .\azure_resource_graph.py
    ```
 
    [image]
