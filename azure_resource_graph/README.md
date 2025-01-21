@@ -1,9 +1,15 @@
-# A.R.G. - azure_resource_graph.py
+A.R.G. - azure_resource_graph.py
 > [!NOTE]
 > - Compatible with Python 3.12+
 > - Sheds light on Azurehound blindspots
 > - `az cli` wrapper 🌯
 > - Inspired by @andyrobbins work on [AzureHound](https://github.com/SpecterOps/AzureHound)
+
+> [!WARNING]
+> 🏗️ WIP 🏗️
+> - [ ] Fix the "Search and Category" filters >.>
+> - [ ] Remove duplicate edges
+> - [ ] Make nodes "movable" as opposed to fluid
 
 ---
 
