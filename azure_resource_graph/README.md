@@ -58,7 +58,8 @@ To use this script, you need the following:
    # 7. Navigate to http://127.0.0.1:1337/azure_resource_graph.html in your favorite browser
    ```
 
-   ![image](https://github.com/user-attachments/assets/5a06c41d-de30-4dab-8cca-077b739502f4)
+   ![image](https://github.com/user-attachments/assets/1f4958d5-e5b8-4763-a2aa-3895c1f7ae91)
+
 
 
 
