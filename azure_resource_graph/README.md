@@ -38,7 +38,7 @@ To use this script, you need the following:
    .\build_azure_resource_graph.py -SubscriptionIds <subscriptionId1> -ResourceGroup <resourceGroup>
    ```
 
-   ![image](https://github.com/user-attachments/assets/8a512b7c-85c5-4ab1-a173-4ba68c1863e1)
+   [image]
 
 6. Fire-up a Python3 Web Server and navigate to the newly generated "azure_resource_graph.HTML" file
 
