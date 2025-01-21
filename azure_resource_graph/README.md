@@ -10,6 +10,8 @@ A.R.G. - azure_resource_graph.py
 > - [ ] Fix the "Search and Category" filters >.>
 > - [ ] Remove duplicate edges
 > - [ ] Make nodes "movable" as opposed to fluid
+> - [ ] Add all Resource Groups and map Access Control to Identities
+> - [ ] Add all Subscriptions and map Access Control to Identities
 
 ---
 
