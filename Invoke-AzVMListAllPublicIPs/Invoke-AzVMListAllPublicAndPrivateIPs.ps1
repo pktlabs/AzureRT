@@ -1,3 +1,31 @@
+<#
+.SYNOPSIS
+Retrieves public and private IPs, NSGs, and related metadata for all Azure VMs in specified subscriptions.
+
+.DESCRIPTION
+This script connects to the specified Azure subscriptions, scans all virtual machines, and retrieves their public and private IP addresses, network security group (NSG) rules, and associated metadata. If no specific subscription is provided, the script processes all enabled subscriptions.
+
+The output includes the following details:
+- Subscription name
+- VM name
+- Public and private IPs
+- Power state
+- Virtual network name (VNet)
+- Subnet range
+- Network Security Group (NSG) rules, including source, destination, protocol, and allowed ports.
+
+The results are displayed in an HTML report that includes filtering and sorting capabilities.
+
+.NOTES
+    Author: Filip Jodoin
+    Date: Jan. 21, 2025
+    Version: 0.0
+
+.EXAMPLE
+# Run the script for all enabled subscriptions and save the report to the default location:
+.\Invoke-AzVMListAllPublicAndPrivateIPs.ps1
+#>
+
 function Invoke-AzVMListAllPublicAndPrivateIPs {
     [CmdletBinding()]
     param ()
