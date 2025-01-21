@@ -7,11 +7,6 @@ function Invoke-AzVMListAllPublicIPs {
     This function queries all virtual machines and retrieves their associated public IP addresses,
     iterating over enabled subscriptions and network configurations where necessary.
 
-    .NOTES
-    Author: Filip Jodoin
-    Date: Jan. 21, 2025
-    Version: 0.0
-
     .OUTPUTS
     A custom PowerShell object containing the subscription names, VM names, and their corresponding public IP addresses.
 
