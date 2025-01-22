@@ -28,12 +28,23 @@ To use this script, you need the following:
   pwsh
   ```
 
-  ![image](https://github.com/user-attachments/assets/e12868a8-1096-4aa6-8a70-4f771902acd3)
-
+  <img width="857" alt="image" src="https://github.com/user-attachments/assets/0b8fe56a-1446-4879-844d-cce20281fc94" />
 
   ```powershell
-  # 4. Run the script 
-  .\Invoke-AzVMListAllPublicAndPrivateIPs.ps1
+  # 4. Load the function 
+  . .\Invoke-AzVMListAllPublicAndPrivateIPs.ps1
+
+  # 5. Run the function
+  Invoke-AzVMListAllPublicAndPrivateIPs
   ```
 
-  [image]
+  ![image](https://github.com/user-attachments/assets/36358bdb-cd7a-4051-b3d7-f5951ebf9060)
+
+  ```powershell
+  # 6. Investigate your Azure VM network info report!
+  ```
+
+  ![image](https://github.com/user-attachments/assets/c0cb2e9e-16b8-4a2f-af41-2735250e5f28)
+
+
+  
