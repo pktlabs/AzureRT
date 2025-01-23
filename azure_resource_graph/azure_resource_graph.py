@@ -269,19 +269,37 @@ search_html = """
     searchInput.style.zIndex = '10';
     document.body.appendChild(searchInput);
 
+    var categoryDropdown = document.createElement('select');
+    categoryDropdown.setAttribute('id', 'categoryDropdown');
+    categoryDropdown.style.position = 'absolute';
+    categoryDropdown.style.top = '50px';
+    categoryDropdown.style.left = '50%';
+    categoryDropdown.style.transform = 'translateX(-50%)';
+    categoryDropdown.style.zIndex = '10';
+    document.body.appendChild(categoryDropdown);
+
+    var categories = ["All", "Microsoft.Compute/virtualMachines", "Microsoft.Storage/storageAccounts", "Microsoft.KeyVault/vaults", "Microsoft.ManagedIdentity/userAssignedIdentities"];
+    categories.forEach(function(category) {
+      var option = document.createElement('option');
+      option.value = category;
+      option.text = category.split('/').pop();
+      categoryDropdown.appendChild(option);
+    });
+
     function filterGraph() {
       var searchQuery = searchInput.value.toLowerCase();
+      var selectedCategory = categoryDropdown.value;
       var visibleNodes = new Set();
       var visibleEdges = [];
 
       network.body.data.nodes.get().forEach(function(node) {
         var nodeLabel = node.label.toLowerCase();
+        var nodeType = node.title;
+        var isCategoryMatch = selectedCategory === "All" || nodeType === selectedCategory;
         var isSearchMatch = nodeLabel.includes(searchQuery);
 
-        if (isSearchMatch) {
+        if (isSearchMatch && isCategoryMatch) {
           visibleNodes.add(node.id);
-          var nodeType = node.title;
-
           if (nodeType === "User" || nodeType === "ServicePrincipal" || nodeType === "Application" || nodeType === "ManagedIdentity") {
             collectOutwardEdges(node.id, visibleNodes, visibleEdges);
           } else {
@@ -321,6 +339,7 @@ search_html = """
     }
 
     searchInput.addEventListener('input', filterGraph);
+    categoryDropdown.addEventListener('change', filterGraph);
   };
 </script>
 """
