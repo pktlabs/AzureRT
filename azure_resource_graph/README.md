@@ -12,6 +12,7 @@ A.R.G. - azure_resource_graph.py
 > - [ ] Make nodes "movable" as opposed to fluid
 > - [ ] Add all Resource Groups and map Access Control to Identities
 > - [ ] Add all Subscriptions and map Access Control to Identities
+> - [ ] Show Custom Azure RBAC Role assigned to Managed Identities
 
 ---
 
