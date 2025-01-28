@@ -1,351 +1,250 @@
-import subprocess
 import json
-import networkx as nx
-from pyvis.network import Network
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
+from typing import List, Dict, Set, Tuple
 
-# Function to run az CLI commands and return JSON output
-def run_az_cli(command):
-    print(f"Running command: {command}")  # Added print for command execution
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"Error executing command: {result.stderr}")
-        return None
-    return json.loads(result.stdout)
-
-# Helper function to fetch role assignments at various scopes
-def fetch_role_assignments(resource_id, resource_group_id, subscription_id, processed_scopes):
-    print(f"Fetching role assignments for resource: {resource_id}")  # Output
-    scopes = [
-        resource_id,  # Resource scope
-        resource_group_id,  # Resource Group scope
-        f"/subscriptions/{subscription_id}"  # Subscription scope
-    ]
-    
-    role_assignments = []
-    
-    for scope in scopes:
-        if scope not in processed_scopes:
-            print(f"Fetching role assignments for scope: {scope}")
-            command = f"az role assignment list --scope {scope} --subscription {subscription_id} --output json"
-            assignments = run_az_cli(command)
-            if assignments:
-                role_assignments.extend(assignments)
-            processed_scopes.add(scope)  # Mark scope as processed
-    print(f"Found {len(role_assignments)} role assignments for {resource_id}")  # Output
-    return role_assignments
-
-# Function to fetch Key Vault Access Policies and update the graph
-def add_keyvault_access_policies(resource_id, subscription_id):
-    parts = resource_id.split('/')
-    resource_group_name = parts[4]  # Extract resource group name
-    keyvault_name = parts[-1]  # Extract Key Vault name
-
-    print(f"Fetching access policies for Key Vault: {keyvault_name}")
-    command = f"az keyvault show --name {keyvault_name} --resource-group {resource_group_name} --subscription {subscription_id} --query properties.accessPolicies -o json"
-    access_policies = run_az_cli(command)
-
-    if not access_policies:
-        print(f"No access policies found for Key Vault: {resource_id}")
-        return
-
-    print(f"Found {len(access_policies)} access policies for {keyvault_name}")  # Output
-
-    if not G.has_node(resource_id):
-        G.add_node(resource_id, label=keyvault_name, type="KeyVault")
-
-    for policy in access_policies:
-        principal_id = policy.get("objectId", "Unknown")
-        permissions = policy.get("permissions", {})
-        secrets_permissions = permissions.get("secrets", [])
-        keys_permissions = permissions.get("keys", [])
-        certificates_permissions = permissions.get("certificates", [])
-
-        if not (secrets_permissions or keys_permissions or certificates_permissions):
-            continue
-        
-        permission_details = []
-        if secrets_permissions:
-            permission_details.append(("Secret", secrets_permissions))
-        if keys_permissions:
-            permission_details.append(("Key", keys_permissions))
-        if certificates_permissions:
-            permission_details.append(("Certificate", certificates_permissions))
-
-        for perm_type, perm_list in permission_details:
-            principal_label = principal_upns.get(principal_id, principal_id)
-
-            if not G.has_node(principal_id):
-                G.add_node(principal_id, label=principal_label, type="User/Principal", color=get_identity_color("User"))
-
-            permission_actions = ', '.join(perm_list)
-            edge_label = f"{perm_type}: {permission_actions}"
-
-            for _ in perm_list:
-                if not G.has_edge(principal_id, resource_id, key=edge_label):
-                    G.add_edge(principal_id, resource_id, label=edge_label, key=edge_label)
-
-# Function to get a dictionary mapping subscription IDs to subscription names
-def get_subscription_id_name_map():
-    print("Fetching subscription list...")
-    command = "az account list --query '[].{id:id, name:name}' -o json"
-    subscriptions = run_az_cli(command)
-    if subscriptions:
-        print(f"Found {len(subscriptions)} subscriptions.")
-        return {sub["id"]: sub["name"] for sub in subscriptions}
-    print("No subscriptions found.")
-    return {}
-
-# Fetch all UPNs or display names for all principal IDs in the tenant
-def fetch_all_principals_upns():
-    print("Fetching UPNs for all principals...")
-    users_command = "az ad user list --query '[].{id:id, upn:userPrincipalName}' -o json"
-    sp_command = "az ad sp list --query '[].{id:id, displayName:displayName}' -o json"
-    
-    users = run_az_cli(users_command)
-    service_principals = run_az_cli(sp_command)
-    
-    principal_upns = {}
-
-    if users:
-        for user in users:
-            principal_upns[user["id"]] = user["upn"]
-
-    if service_principals:
-        for sp in service_principals:
-            principal_upns[sp["id"]] = sp["displayName"]
-    
-    return principal_upns
-
-# Function to assign color based on identity type
-def get_identity_color(principal_type):
-    colors = {
-        "User": "#08cc27",
-        "ServicePrincipal": "#b035e5",
-        "Application": "#2E8B57",
-        "ManagedIdentity": "#FCD117"
-    }
-    return colors.get(principal_type, "gray")
-
-# Assign colors for Subscription and Resource Group nodes
-def get_special_node_color(node_type):
-    if node_type == "Subscription":
-        return "#f0d511"
-    elif node_type == "ResourceGroup":
-        return "#4682B4"
-    return "#FF8C00"
-
-subscription_id_name_map = get_subscription_id_name_map()
-subscription_ids = list(subscription_id_name_map.keys())
-
-if not subscription_ids:
-    print("No subscriptions found. Exiting.")
-    exit(1)
-
-principal_upns = fetch_all_principals_upns()
-
-resource_types = [
+# Constants
+RESOURCE_TYPES = [
     "Microsoft.Compute/virtualMachines",
+    "Microsoft.Compute/virtualMachineScaleSets",
     "Microsoft.Storage/storageAccounts",
     "Microsoft.KeyVault/vaults",
-    "Microsoft.ManagedIdentity/userAssignedIdentities"
+    "Microsoft.Web/sites",
+    "Microsoft.ManagedIdentity/userAssignedIdentities",
+    "Microsoft.ContainerService/managedClusters",
+    "Microsoft.Automation/automationAccounts"
 ]
 
-G = nx.MultiDiGraph()
-
-def process_subscription(subscription_id):
-    print(f"Processing Subscription: {subscription_id}")
-    subscription_name = subscription_id_name_map.get(subscription_id, f"Subscription {subscription_id}")
-
-    processed_scopes = set()
-    resources = []
-    
-    for resource_type in resource_types:
-        print(f"Fetching resources of type: {resource_type} for subscription: {subscription_id}")
-        command = f"az resource list --resource-type {resource_type} --subscription {subscription_id} --output json"
-        resource_data = run_az_cli(command)
-        if resource_data:
-            resources += resource_data
-
-    print(f"Found {len(resources)} resources in subscription: {subscription_id}")
-    for resource in resources:
-        resource_id = resource["id"]
-        resource_name = resource["name"]
-        resource_type = resource["type"]
-        resource_group_id = "/".join(resource_id.split("/")[:5])
-
-        G.add_node(resource_id, label=resource_name, type=resource_type)
-
-        if not G.has_node(resource_group_id):
-            resource_group_name = resource["id"].split("/")[4]
-            G.add_node(resource_group_id, label=resource_group_name, type="ResourceGroup")
-
-        subscription_node = f"/subscriptions/{subscription_id}"
-        if not G.has_node(subscription_node):
-            G.add_node(subscription_node, label=subscription_name, type="Subscription")
-
-        if not G.has_edge(subscription_node, resource_group_id):
-            G.add_edge(subscription_node, resource_group_id, label="Contains")
-
-        G.add_edge(resource_group_id, resource_id, label="Contains")
-
-        if resource_type == "Microsoft.ManagedIdentity/userAssignedIdentities":
-            print(f"Adding Managed Identity to the graph: {resource_name} (ID: {resource_id})")
-
-        if resource_type == "Microsoft.KeyVault/vaults":
-            add_keyvault_access_policies(resource_id, subscription_id)
-
-        role_assignments = fetch_role_assignments(resource_id, resource_group_id, subscription_id, processed_scopes)
-
-        for role in role_assignments:
-            principal_id = role.get("principalId", "Unknown")
-            principal_type = role.get("principalType", "Unknown")
-            role_name = role.get("roleDefinitionName", "Unknown")
-
-            principal_label = principal_upns.get(principal_id, principal_id)
-
-            if not G.has_node(principal_id):
-                G.add_node(principal_id, label=principal_label, type=principal_type, color=get_identity_color(principal_type))
-
-            if resource_id in role["scope"]:
-                G.add_edge(principal_id, resource_id, label=role_name)
-            elif resource_group_id in role["scope"]:
-                G.add_edge(principal_id, resource_group_id, label=role_name)
-            elif f"/subscriptions/{subscription_id}" in role["scope"]:
-                G.add_edge(principal_id, subscription_node, label=role_name)
-
-with ThreadPoolExecutor() as executor:
-    executor.map(process_subscription, subscription_ids)
-
-net = Network(height="750px", width="100%", directed=True)
-
-for node, data in G.nodes(data=True):
-    label = data.get("label", node)
-    color = data.get("color", get_special_node_color(data.get("type", "Unknown")))
-    net.add_node(node, label=label, title=data.get("type", "Unknown"), color=color)
-
-for source, target, data in G.edges(data=True):
-    role = data.get("label", "Unknown")
-    net.add_edge(source, target, title=role, label=role)
-
-net.set_options("""
-var options = {
-  "nodes": {
-    "shape": "dot",
-    "size": 16
-  },
-  "edges": {
-    "arrows": {
-      "to": { "enabled": true, "scaleFactor": 1.5 }
-    }
-  },
-  "physics": {
-    "barnesHut": {
-      "gravitationalConstant": -80000,
-      "springLength": 250
-    }
-  },
-  "manipulation": {
-    "enabled": true
-  },
-  "interaction": {
-    "navigationButtons": true,
-    "zoomView": true
-  }
+RESOURCE_COLORS = {
+    "Microsoft.Compute/virtualMachines": "#1f77b4",
+    "Microsoft.Compute/virtualMachineScaleSets": "#aec7e8",
+    "Microsoft.Storage/storageAccounts": "#2ca02c",
+    "Microsoft.KeyVault/vaults": "#9467bd",
+    "Microsoft.Web/sites": "#e377c2",
+    "Microsoft.ManagedIdentity/userAssignedIdentities": "#ff7f0e",
+    "Microsoft.ContainerService/managedClusters": "#17becf",
+    "Microsoft.Automation/automationAccounts": "#8c564b",
+    "ResourceGroup": "#7f7f7f",
+    "Subscription": "#bcbd22",
+    "SystemAssignedManagedIdentity": "#98df8a",
+    "Principal": "#d62728",
+    "FederatedCredential": "#9edae5"
 }
-""")
 
-search_html = """
-<script type="text/javascript">
-  window.onload = function() {
-    var searchInput = document.createElement('input');
-    searchInput.setAttribute('type', 'text');
-    searchInput.setAttribute('placeholder', 'Search for a resource or identity...');
-    searchInput.setAttribute('id', 'searchBox');
-    searchInput.style.position = 'absolute';
-    searchInput.style.top = '10px';
-    searchInput.style.left = '50%';
-    searchInput.style.transform = 'translateX(-50%)';
-    searchInput.style.zIndex = '10';
-    document.body.appendChild(searchInput);
+principal_name_cache = {}
 
-    var categoryDropdown = document.createElement('select');
-    categoryDropdown.setAttribute('id', 'categoryDropdown');
-    categoryDropdown.style.position = 'absolute';
-    categoryDropdown.style.top = '50px';
-    categoryDropdown.style.left = '50%';
-    categoryDropdown.style.transform = 'translateX(-50%)';
-    categoryDropdown.style.zIndex = '10';
-    document.body.appendChild(categoryDropdown);
+class AzureResourceGraph:
+    def __init__(self):
+        self.nodes = []
+        self.node_ids = set()
+        self.edges = []
+        self.edge_tuples = set()
 
-    var categories = ["All", "Microsoft.Compute/virtualMachines", "Microsoft.Storage/storageAccounts", "Microsoft.KeyVault/vaults", "Microsoft.ManagedIdentity/userAssignedIdentities"];
-    categories.forEach(function(category) {
-      var option = document.createElement('option');
-      option.value = category;
-      option.text = category.split('/').pop();
-      categoryDropdown.appendChild(option);
-    });
+    def add_node(self, node_id: str, name: str, node_type: str, color: str = None):
+        existing_node = next((node for node in self.nodes if node["id"] == node_id), None)
+        if existing_node:
+            # Merge nodes, favoring UserAssignedManagedIdentity
+            if node_type == "UserAssignedManagedIdentity":
+                existing_node.update({"label": name, "type": node_type, "color": RESOURCE_COLORS[node_type]})
+        else:
+            color = color or RESOURCE_COLORS.get(node_type, "blue")
+            self.nodes.append({
+                "id": node_id,
+                "label": name,
+                "type": node_type,
+                "resourceType": node_type,
+                "color": color
+            })
+        self.node_ids.add(node_id)
 
-    function filterGraph() {
-      var searchQuery = searchInput.value.toLowerCase();
-      var selectedCategory = categoryDropdown.value;
-      var visibleNodes = new Set();
-      var visibleEdges = [];
 
-      network.body.data.nodes.get().forEach(function(node) {
-        var nodeLabel = node.label.toLowerCase();
-        var nodeType = node.title;
-        var isCategoryMatch = selectedCategory === "All" || nodeType === selectedCategory;
-        var isSearchMatch = nodeLabel.includes(searchQuery);
+    def add_edge(self, source: str, target: str, label: str, color: str = "black"):
+        edge_key = (source, target, label, color)  # Include color in the uniqueness check
+        if edge_key not in self.edge_tuples:
+            self.edges.append({
+                "source": source,
+                "target": target,
+                "label": label,
+                "color": color
+            })
+            self.edge_tuples.add(edge_key)
 
-        if (isSearchMatch && isCategoryMatch) {
-          visibleNodes.add(node.id);
-          if (nodeType === "User" || nodeType === "ServicePrincipal" || nodeType === "Application" || nodeType === "ManagedIdentity") {
-            collectOutwardEdges(node.id, visibleNodes, visibleEdges);
-          } else {
-            collectIncomingEdges(node.id, visibleNodes, visibleEdges);
-          }
-        }
-      });
+    def write_to_file(self, filename: str = "output_azure_resource_data.json"):
+        data = {"nodes": self.nodes, "edges": self.edges}
+        with open(filename, "w") as file:
+            json.dump(data, file, indent=2)
+        print(f"Data written to {filename}")
 
-      function collectOutwardEdges(nodeId, nodes, edges) {
-        network.body.data.edges.get().forEach(function(edge) {
-          if (edge.from === nodeId) {
-            edges.push(edge);
-            nodes.add(edge.to);
-            collectOutwardEdges(edge.to, nodes, edges);
-          }
-        });
-      }
+class AzureCLI:
+    @staticmethod
+    def run_az_cli(command: str) -> List[Dict]:
+        try:
+            print("[*]", command)
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            return json.loads(result.stdout) if result.returncode == 0 else []
+        except Exception as e:
+            print(f"Exception while running command: {e}")
+            return []
 
-      function collectIncomingEdges(nodeId, nodes, edges) {
-        network.body.data.edges.get().forEach(function(edge) {
-          if (edge.to === nodeId) {
-            edges.push(edge);
-            nodes.add(edge.from);
-            collectIncomingEdges(edge.from, nodes, edges);
-          }
-        });
-      }
+class AzureResourceProcessor:
+    def __init__(self, graph: AzureResourceGraph, cli: AzureCLI):
+        self.graph = graph
+        self.cli = cli
 
-      network.body.data.nodes.forEach(function(node) {
-        network.body.data.nodes.update({ id: node.id, hidden: !visibleNodes.has(node.id) });
-      });
+    def get_principal_names(self, principal_ids: List[str]) -> Dict[str, str]:
+        global principal_name_cache
+        uncached_ids = [pid for pid in principal_ids if pid not in principal_name_cache]
+        if uncached_ids:
+            quoted_ids = ",".join([f"'{pid}'" for pid in uncached_ids])
+            user_command = f"az ad user list --filter \"id in ({quoted_ids})\" --query '[].{{id:id, name:displayName}}' --output json"
+            sp_command = f"az ad sp list --filter \"id in ({quoted_ids})\" --query '[].{{id:id, name:displayName}}' --output json"
 
-      network.body.data.edges.forEach(function(edge) {
-        var isVisible = visibleEdges.includes(edge);
-        network.body.data.edges.update({ id: edge.id, hidden: !isVisible });
-      });
-    }
+            user_data = self.cli.run_az_cli(user_command)
+            sp_data = self.cli.run_az_cli(sp_command)
 
-    searchInput.addEventListener('input', filterGraph);
-    categoryDropdown.addEventListener('change', filterGraph);
-  };
-</script>
-"""
+            for record in user_data + sp_data:
+                principal_name_cache[record['id']] = record['name']
 
-net.save_graph("azure_resource_graph.html")
-with open("azure_resource_graph.html", "a") as f:
-    f.write(search_html)
+            for pid in uncached_ids:
+                principal_name_cache.setdefault(pid, pid)
 
-print("Graph saved as 'azure_resource_graph.html'")
+        return {pid: principal_name_cache[pid] for pid in principal_ids}
+
+    def fetch_role_assignments(self, resource_id: str, resource_group_id: str, subscription_id: str, processed_scopes: Set[str]) -> Dict[str, Tuple[str, str, str]]:
+        scopes = [f"/subscriptions/{subscription_id}", resource_group_id, resource_id]
+        role_assignments = {}
+
+        for scope in scopes:
+            if scope not in processed_scopes:
+                command = f"az role assignment list --scope {scope} --subscription {subscription_id} --output json"
+                assignments = self.cli.run_az_cli(command)
+                for role in assignments:
+                    principal_id = role.get("principalId", "Unknown")
+                    role_name = role.get("roleDefinitionName", "Unknown")
+                    role_assignments[principal_id] = (scope, role_name)
+                processed_scopes.add(scope)
+
+        principal_ids = list(role_assignments.keys())
+        principal_names = self.get_principal_names(principal_ids)
+
+        return {pid: (data[0], data[1], principal_names[pid]) for pid, data in role_assignments.items()}
+
+    def fetch_keyvault_access_policies(self, keyvault_id: str, subscription_id: str) -> List[Tuple[str, str, List[str]]]:
+        """
+        Fetch and process Key Vault access policies.
+        Returns a list of (principal_id, permission_type, permissions) where permissions is non-empty.
+        """
+        keyvault_name = keyvault_id.split("/")[-1]
+        resource_group = keyvault_id.split("/")[4]
+
+        command = (
+            f"az keyvault show --name {keyvault_name} --resource-group {resource_group} "
+            f"--query 'properties.accessPolicies' --output json --subscription {subscription_id}"
+        )
+        access_policies = self.cli.run_az_cli(command)
+        if not access_policies:
+            return []
+
+        # Flatten the access policies
+        flattened_policies = []
+        for policy in access_policies:
+            principal_id = policy.get("objectId")
+            permissions = policy.get("permissions", {})
+            if principal_id:
+                for permission_type in ["keys", "secrets", "certificates"]:
+                    if permissions.get(permission_type):  # Only include non-empty permissions
+                        flattened_policies.append((principal_id, permission_type, permissions[permission_type]))
+
+        return flattened_policies
+
+    def fetch_federated_credentials(self, identity_id: str, subscription_id: str) -> List[Dict]:
+        """
+        Fetch federated credentials for a managed identity.
+        """
+        # Extract resource group and identity name from the identity_id
+        parts = identity_id.split("/")
+        resource_group = parts[4]  # Resource group is the 5th part of the ID
+        identity_name = parts[-1]  # Identity name is the last part of the ID
+
+        # Construct the command with resource group and identity name
+        command = (
+            f"az identity federated-credential list "
+            f"--resource-group {resource_group} "
+            f"--identity-name {identity_name} "
+            f"--subscription {subscription_id} "
+            f"--output json"
+        )
+        federated_credentials = self.cli.run_az_cli(command)
+        return federated_credentials if federated_credentials else []
+
+    def process_subscription(self, subscription_id: str, subscription_name: str, resource_types: List[str]):
+        processed_scopes = set()
+        command = f"az resource list --subscription {subscription_id} --output json"
+        resources = self.cli.run_az_cli(command)
+
+        resources = [res for res in resources if res["type"] in resource_types]
+        for resource in resources:
+            resource_id = resource["id"]
+            resource_name = resource["name"]
+            resource_type = resource["type"]
+            resource_group_id = "/".join(resource_id.split("/")[:5])
+
+            self.graph.add_node(resource_id, resource_name, resource_type)
+            self.graph.add_node(resource_group_id, resource_group_id.split("/")[-1], "ResourceGroup")
+            self.graph.add_node(f"/subscriptions/{subscription_id}", subscription_name, "Subscription")
+
+            self.graph.add_edge(f"/subscriptions/{subscription_id}", resource_group_id, "Contains", color="gold")
+            self.graph.add_edge(resource_group_id, resource_id, "Contains", color="orange")
+
+            if resource.get("identity") and resource["identity"].get("type") == "SystemAssigned":
+                principal_id = resource["identity"]["principalId"]
+                self.graph.add_node(principal_id, f"{resource_name}-Identity", "SystemAssignedManagedIdentity")
+                self.graph.add_edge(principal_id, resource_id, "SystemAssignedIdentity", color="green")
+
+            highest_scope_roles = self.fetch_role_assignments(resource_id, resource_group_id, subscription_id, processed_scopes)
+            for principal_id, (scope, role_name, principal_name) in highest_scope_roles.items():
+                self.graph.add_node(principal_id, principal_name, "Principal")
+                self.graph.add_edge(principal_id, scope, role_name, color="green")
+
+            # Process Key Vault access policies
+            if resource_type == "Microsoft.KeyVault/vaults":
+                access_policies = self.fetch_keyvault_access_policies(resource_id, subscription_id)
+                for principal_id, permission_type, permissions in access_policies:
+                    if permissions:  # Ensure there are permissions for this access type
+                        principal_name = self.get_principal_names([principal_id]).get(principal_id, principal_id)
+                        self.graph.add_node(principal_id, principal_name, "Principal")
+                        self.graph.add_edge(principal_id, resource_id, f"Access: {permission_type.capitalize()}", color="purple")
+
+            # Check if the resource is a managed identity and has federated credentials
+            if resource_type == "Microsoft.ManagedIdentity/userAssignedIdentities":
+                federated_credentials = self.fetch_federated_credentials(resource_id, subscription_id)
+                if federated_credentials:
+                    for cred in federated_credentials:
+                        cred_id = cred.get("id", "Unknown")
+                        cred_name = cred.get("name", "Unknown")
+                        self.graph.add_node(cred_id, cred_name, "FederatedCredential")
+                        self.graph.add_edge(resource_id, cred_id, "HasFederatedCredential", color="blue")
+
+
+    def process_all_subscriptions(self, resource_types: List[str]):
+        subscriptions = self.cli.run_az_cli("az account list --output json")
+        if not subscriptions:
+            print("No subscriptions found.")
+            return
+
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(self.process_subscription, subscription["id"], subscription["name"], resource_types)
+                for subscription in subscriptions
+            ]
+            for future in futures:
+                future.result()
+
+# Main Execution
+if __name__ == "__main__":
+    graph = AzureResourceGraph()
+    cli = AzureCLI()
+    processor = AzureResourceProcessor(graph, cli)
+
+    processor.process_all_subscriptions(RESOURCE_TYPES)
+    graph.write_to_file()
