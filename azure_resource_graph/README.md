@@ -35,7 +35,7 @@ To use this script, you need the following:
    cd ./AzureRT/azure_resource_graph
    ```
 
-   ![image](https://github.com/user-attachments/assets/2207a6cb-120e-4e95-818f-424b0b734f5a)
+   ![image](https://github.com/user-attachments/assets/733e9ce5-c2c9-4884-8031-3ac87c2f0976)
 
    
    ```bash
