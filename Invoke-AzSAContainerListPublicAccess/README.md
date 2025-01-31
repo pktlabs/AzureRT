@@ -14,7 +14,7 @@ The `Invoke-AzSAContainerListPublicAccess.ps1` script is designed to automate th
 To use this script, you need the following:  
 
 - **Az PowerShell SDK**: Authenticate with `Connect-AzAccount` before launching `Invoke-AzSAContainerListPublicAccess.ps1`.
-- **Azure RBAC Storage Blob Reader**: The identity to use with the `Az SDK` requires atleast "Storage Blob Reader" on the subscriptions, resource group, or resource(s) in-scope.
+- **Azure RBAC Reader**: The identity to use with the `Az SDK` requires atleast "Reader" on the subscriptions, resource group, or resource(s) in-scope.
   
 ## Usage  
 1. Clone or download this repository.  
