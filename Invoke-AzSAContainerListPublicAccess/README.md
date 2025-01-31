@@ -3,6 +3,7 @@
 > [!NOTE]
 > - Compatible with non-Windows PowerShell (pwsh)
 > - Az SDK wrapper 🌯
+> - Storage Account Network rules *may* block access
 
 ---
 
