@@ -1,0 +1,52 @@
+{
+  "name": "@sigma/edge-curve",
+  "version": "3.1.0",
+  "description": "An edge program that renders edges as curves for sigma.js",
+  "main": "dist/sigma-edge-curve.cjs.js",
+  "module": "dist/sigma-edge-curve.esm.js",
+  "types": "dist/sigma-edge-curve.cjs.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "sideEffects": false,
+  "homepage": "https://www.sigmajs.org",
+  "bugs": "http://github.com/jacomyal/sigma.js/issues",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/jacomyal/sigma.js.git",
+    "directory": "packages/edge-curve"
+  },
+  "keywords": [
+    "graph",
+    "graphology",
+    "sigma"
+  ],
+  "contributors": [
+    {
+      "name": "Guillaume Plique",
+      "url": "http://github.com/Yomguithereal"
+    },
+    {
+      "name": "Alexis Jacomy",
+      "url": "http://github.com/jacomyal"
+    }
+  ],
+  "license": "MIT",
+  "preconstruct": {
+    "entrypoints": [
+      "index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "sigma": ">=3.0.0-beta.10"
+  },
+  "exports": {
+    ".": {
+      "module": "./dist/sigma-edge-curve.esm.js",
+      "import": "./dist/sigma-edge-curve.cjs.mjs",
+      "default": "./dist/sigma-edge-curve.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "gitHead": "e1aa032da3a2755b45cec0a4b01b69410e873877"
+}
