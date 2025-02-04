@@ -36,7 +36,7 @@ function App() {
   return (
     <div className="App">
       <div className="header-row">
-        <h1>My Title</h1>
+        <h1>🏴‍☠️ Azure Resource Graph (ARG) 🏴‍☠️</h1>
         <div className="controls">
           <input type="file" accept=".json" onChange={handleFileUpload} />
           <select className="category-dropdown" value={selectedCategory} onChange={handleCategoryChange}>
