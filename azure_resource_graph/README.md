@@ -48,12 +48,13 @@ To use this script, you need the following:
 
    ```bash
    # 4. Fire-up npm to host the Web App and navigate to http://127.0.0.1:3000
-   npm start
+   npm run start
 
    # 5. Upload the output_azure_resource_data.json
    ```
 
-   [image]
+   ![image](https://github.com/user-attachments/assets/23f2adc5-5542-4317-b685-547ae4732758)
+
 
 
 
