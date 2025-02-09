@@ -1,4 +1,4 @@
-function Invoke-AzVMListAllPublicAndPrivateIPs {
+function Invoke-AzVMInfo {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)]
