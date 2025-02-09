@@ -38,7 +38,8 @@ To use this script, you need the following:
 
 - Protect your assets!
 
-  ![image](https://github.com/user-attachments/assets/68bfaf35-7384-4424-a391-f71a0856c63b)
+![image](https://github.com/user-attachments/assets/f1424d3e-6a29-4c18-af8f-27e5a83847d7)
+
 
 
 
