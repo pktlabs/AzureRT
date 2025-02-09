@@ -28,7 +28,8 @@ To use this script, you need the following:
   pwsh
   ```
 
-  <img width="857" alt="image" src="https://github.com/user-attachments/assets/0b8fe56a-1446-4879-844d-cce20281fc94" />
+  ![image](https://github.com/user-attachments/assets/9e3c7bd9-6a4b-4077-8d63-cc00a9dcf70a)
+
 
   ```powershell
   # 4. Load the function 
@@ -38,13 +39,15 @@ To use this script, you need the following:
   Invoke-AzVMInfo
   ```
 
-  ![image](https://github.com/user-attachments/assets/36358bdb-cd7a-4051-b3d7-f5951ebf9060)
+  ![image](https://github.com/user-attachments/assets/e0f23eb3-928a-4a04-b18f-47fd40409a19)
+
 
   ```powershell
   # 6. Investigate your Azure VM network info report!
   ```
 
-  ![image](https://github.com/user-attachments/assets/7d65dc25-3f87-4d0a-90e2-93e6a461cb84)
+  ![image](https://github.com/user-attachments/assets/a2506c23-0280-4a77-beef-806888e7ceca)
+
 
 
 
