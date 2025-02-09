@@ -21,27 +21,27 @@ To use this script, you need the following:
 2. Change into the according directory.  
 3. Fire-up a PowerShell 7+ session  
 
-   ```powershell
-   git clone https://github.com/fjodoin/AzureRT.git
-   cd ./AzureRT/Invoke-AzSAListPublicAccess
-   pwsh
-   ```
+  ```powershell
+  git clone https://github.com/fjodoin/AzureRT.git
+  cd ./AzureRT/Invoke-AzSAListPublicAccess
+  pwsh
+  ```
 
-   ![image](https://github.com/user-attachments/assets/ef41c444-dc37-4358-8e29-be660e4eb9b4)
+  ![image](https://github.com/user-attachments/assets/ef41c444-dc37-4358-8e29-be660e4eb9b4)
 
 
 
 - Run the script
 
-   ```powershell
-   .\Invoke-AzSAListPublicAccess.ps1
-   ```
+  ```powershell
+  .\Invoke-AzSAListPublicAccess.ps1
+  ```
 
-![image](https://github.com/user-attachments/assets/c724574b-52e4-40a5-8203-d9ebf884d110)
+  ![image](https://github.com/user-attachments/assets/c724574b-52e4-40a5-8203-d9ebf884d110)
 
 - Protect your assets!
 
-![image](https://github.com/user-attachments/assets/68bfaf35-7384-4424-a391-f71a0856c63b)
+  ![image](https://github.com/user-attachments/assets/68bfaf35-7384-4424-a391-f71a0856c63b)
 
 
 
