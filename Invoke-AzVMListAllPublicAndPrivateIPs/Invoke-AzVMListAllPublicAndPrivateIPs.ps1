@@ -219,7 +219,7 @@ function Invoke-AzVMListAllPublicAndPrivateIPs {
     </script>
 </head>
 <body>
-    <h1 style="color: #007FFF;">Azure VM Info Report: NSG Rules, Public and Private IPs</h1>
+    <h1 style="color: #007FFF;">🖥️ Azure VM Info Report: NSG Rules, Public and Private IPs 📝</h1>
     <table id="nsgTable" class="display" style="width:100%">
         <thead>
             <tr>
