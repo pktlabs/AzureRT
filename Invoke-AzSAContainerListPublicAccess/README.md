@@ -36,7 +36,8 @@ To use this script, you need the following:
    .\Invoke-AzSAContainerListPublicAccess.ps1
    ```
 
-   ![image](https://github.com/user-attachments/assets/3b37adbd-490d-4d23-96ab-5a35a9d655e5)
+ ![image](https://github.com/user-attachments/assets/4e782055-519a-49ce-a52b-9ef9de266e89)
+
 
 
 
