@@ -176,7 +176,7 @@ $htmlContent = @"
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Azure Blob Public Access Report</title>
+    <title>Azure Storage Account Public Access Report</title>
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
@@ -250,7 +250,7 @@ $htmlRows
 "@
 
 # Save the report to disk and launch it in the default browser.
-$htmlPath = "AzureBlobPublicAccessReport.html"
+$htmlPath = "AzureSAPublicAccessReport.html"
 $htmlContent | Out-File -FilePath $htmlPath -Encoding UTF8
 Write-Host "Report generated: $htmlPath" -ForegroundColor Green
 Start-Process $htmlPath
