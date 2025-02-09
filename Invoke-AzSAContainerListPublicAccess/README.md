@@ -3,7 +3,7 @@
 > [!NOTE]
 > - Compatible with non-Windows PowerShell (pwsh)
 > - Az SDK wrapper 🌯
-> - Storage Account Network rules *may* block access; if so, run with higher privileges Azure RBAC permissions
+> - Storage Account Network rules *may* block access; if so, run with atleast `Storage Account Contributor` Azure RBAC permissions
 
 ---
 
@@ -14,7 +14,7 @@ The `Invoke-AzSAContainerListPublicAccess.ps1` script is designed to automate th
 To use this script, you need the following:  
 
 - **Az PowerShell SDK**: Authenticate with `Connect-AzAccount` before launching `Invoke-AzSAContainerListPublicAccess.ps1`.
-- **Azure RBAC Reader**: The identity to use with the `Az SDK` requires atleast "Reader" on the subscriptions, resource group, or resource(s) in-scope.
+- **Azure RBAC Reader**: The identity to use with the `Az SDK` requires atleast "Storage Account Contributor" to run `Get-AzStorageContainerAcl` on the subscriptions, resource group, or resource(s) in-scope.
   
 ## Usage  
 1. Clone or download this repository.  
