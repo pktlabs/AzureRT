@@ -3,6 +3,7 @@
 > [!NOTE]
 > - Compatible with non-Windows PowerShell (pwsh)
 > - Az SDK wrapper 🌯
+> - Azure RBAC `Reader` on the subscription, resoure group, or resources in-scope
 
 ---
 
@@ -17,34 +18,34 @@ To use this script, you need the following:
   
 ## Usage  
 
-  ```powershell
-  # 1. Clone or download this repository.
-  git clone https://github.com/fjodoin/AzureRT.git
+```powershell
+# 1. Clone or download this repository.
+git clone https://github.com/fjodoin/AzureRT.git
 
-  # 2. Change into the according directory.
-  cd ./AzureRT/Invoke-AzVMInfo
+# 2. Change into the according directory.
+cd ./AzureRT/Invoke-AzVMInfo
 
-  # 3. Fire-up a PowerShell 7+ session  
-  pwsh
-  ```
+# 3. Fire-up a PowerShell 7+ session  
+pwsh
+```
 
-  ![image](https://github.com/user-attachments/assets/9e3c7bd9-6a4b-4077-8d63-cc00a9dcf70a)
-
-
-  ```powershell
-  # 4. Load the function 
-  . .\Invoke-AzVMInfo.ps1
-
-  # 5. Run the function
-  Invoke-AzVMInfo
-  ```
-
-  ![image](https://github.com/user-attachments/assets/e0f23eb3-928a-4a04-b18f-47fd40409a19)
+![image](https://github.com/user-attachments/assets/9e3c7bd9-6a4b-4077-8d63-cc00a9dcf70a)
 
 
-  ```powershell
-  # 6. Investigate your Azure VM network info report!
-  ```
+```powershell
+# 4. Load the function 
+. .\Invoke-AzVMInfo.ps1
+
+# 5. Run the function
+Invoke-AzVMInfo
+```
+
+![image](https://github.com/user-attachments/assets/e0f23eb3-928a-4a04-b18f-47fd40409a19)
+
+
+```powershell
+# 6. Investigate your Azure VM network info report!
+```
 
  ![image](https://github.com/user-attachments/assets/7135075c-638c-4b8a-9009-b154bca21a00)
 
