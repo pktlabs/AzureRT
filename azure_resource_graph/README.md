@@ -54,7 +54,8 @@ To use this script, you need the following:
    # 5. Upload the output_azure_resource_data.json
    ```
 
-   ![image](https://github.com/user-attachments/assets/23f2adc5-5542-4317-b685-547ae4732758)
+![image](https://github.com/user-attachments/assets/32dd301a-9c34-4bf6-b7ad-f92049583543)
+
 
 
 
