@@ -36,7 +36,12 @@ To use this script, you need the following:
    .\Invoke-AzSAListPublicAccess.ps1
    ```
 
- ![image](https://github.com/user-attachments/assets/4e782055-519a-49ce-a52b-9ef9de266e89)
+![image](https://github.com/user-attachments/assets/c724574b-52e4-40a5-8203-d9ebf884d110)
+
+- Protect your assets!
+
+![image](https://github.com/user-attachments/assets/68bfaf35-7384-4424-a391-f71a0856c63b)
+
 
 
 
