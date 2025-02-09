@@ -5,31 +5,29 @@
 .DESCRIPTION
     This script connects to Azure, retrieves specified subscriptions (or all enabled ones if none are provided), 
     and lists the public access levels of all blob containers in each storage account within those subscriptions. 
-    It generates an HTML report with the results, marking any failed storage account queries as "Failed" or, 
-    if the error is due to network restrictions, "Inconclusive: Network Restrictions in-place".  
-    It also outputs a “HIT” message to the console every time a container with public access is discovered.
-
+    It generates an HTML report with the results, marking any failed storage account queries as "Failed" or, in the 
+    case of a 403 error, as "Inconclusive: insufficient permissions".
+    
 .PARAMETER SubscriptionIds
     Optional. Specifies one or more Subscription IDs to filter the scan.
 
 .NOTES
     Author: Filip Jodoin (modified by ChatGPT)
     Date: Feb. 08, 2025
-    Version: 0.5
+    Version: 0.4
 #>
 
 param(
     [string[]]$SubscriptionIds
 )
 
-# Uncomment this line if you need to log in to Azure
+# Uncomment the next line if you need to log in to Azure
 # Connect-AzAccount
 
 Write-Host "Script execution started: any HITs will be displayed below ..." -ForegroundColor Green
 
 # Get all enabled subscriptions
 $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq 'Enabled' }
-
 if (-not $subscriptions) {
     Write-Host "No subscriptions found." -ForegroundColor Yellow
     return
@@ -42,32 +40,29 @@ if ($SubscriptionIds) {
 
 # Filter out any subscriptions with missing IDs
 $validSubscriptions = $subscriptions | Where-Object { $_.Id -and ($_.Id -ne "") }
-
 if (-not $validSubscriptions) {
     Write-Host "No valid subscriptions found." -ForegroundColor Yellow
     return
 }
 
 # ============================================================
-# Use ForEach-Object -Parallel to process each subscription concurrently.
-# (Requires PowerShell 7 or later)
+# Process each subscription concurrently (requires PowerShell 7+)
 # ============================================================
 $finalResults = $validSubscriptions | ForEach-Object -Parallel {
-    # Save the subscription object to another variable since $_ will change in catch blocks.
-    $subscriptionObj = $_
-    
     # Import required modules in the parallel runspace
     Import-Module Az.Accounts -ErrorAction Stop
     Import-Module Az.Storage -ErrorAction Stop
 
-    # If for some reason the subscription object is missing an ID, skip it.
-    if (-not $subscriptionObj.Id) {
-        Write-Host "Skipping subscription with missing ID: $($subscriptionObj.Name)" -ForegroundColor Red
+    # Capture the subscription name for use in error handling
+    $subscriptionName = $_.Name
+
+    if (-not $_.Id) {
+        Write-Host "Skipping subscription with missing ID: $subscriptionName" -ForegroundColor Red
         return
     }
     
     # Switch context to the current subscription
-    Set-AzContext -SubscriptionId $subscriptionObj.Id | Out-Null
+    Set-AzContext -SubscriptionId $_.Id | Out-Null
 
     # Get all storage accounts in the subscription
     $storageAccounts = Get-AzStorageAccount | Select-Object StorageAccountName, ResourceGroupName
@@ -82,59 +77,78 @@ $finalResults = $validSubscriptions | ForEach-Object -Parallel {
                 # Create a storage context using the connected account
                 $context = New-AzStorageContext -StorageAccountName $accountName -UseConnectedAccount
 
-                # Retrieve the list of blob containers.
-                # Adding -ErrorAction Stop ensures that any errors (like network restrictions) are caught.
+                # Retrieve the list of blob containers; force errors to be terminating.
                 $containers = Get-AzStorageContainer -Context $context -ErrorAction Stop | Select-Object Name
+
                 if ($containers) {
                     foreach ($container in $containers) {
-                        # Get the container’s public access level.
-                        $publicAccessLevel = (Get-AzStorageContainerAcl -Name $container.Name -Context $context -ErrorAction Stop).PublicAccess
-                        if (-not $publicAccessLevel) {
-                            $publicAccessLevel = "None"
-                        }
-                        elseif ($publicAccessLevel -eq "Blob") {
-                            $publicAccessLevel = "Blob"
-                        }
-                        elseif ($publicAccessLevel -eq "Container") {
-                            $publicAccessLevel = "Container"
-                        }
-                        else {
-                            $publicAccessLevel = "Unknown ($publicAccessLevel)"
-                        }
+                        try {
+                            # Retrieve the container’s ACL and force errors to be terminating.
+                            $containerAcl = Get-AzStorageContainerAcl -Name $container.Name -Context $context -ErrorAction Stop
+                            $publicAccessLevel = $containerAcl.PublicAccess
 
-                        # Build the result object.
-                        $resultObj = [PSCustomObject]@{
-                            SubscriptionName    = $subscriptionObj.Name
-                            StorageAccountName  = $accountName
-                            ResourceGroupName   = $resourceGroup
-                            ContainerName       = $container.Name
-                            AnonymousAccessType = $publicAccessLevel
-                        }
-                        $subResults += $resultObj
+                            if (-not $publicAccessLevel) {
+                                $publicAccessLevel = "None"
+                            }
+                            elseif ($publicAccessLevel -eq "Blob") {
+                                $publicAccessLevel = "Blob"
+                            }
+                            elseif ($publicAccessLevel -eq "Container") {
+                                $publicAccessLevel = "Container"
+                            }
+                            else {
+                                $publicAccessLevel = "Unknown ($publicAccessLevel)"
+                            }
 
-                        # If the container is publicly accessible (a "HIT"), output a progress message.
-                        if ($publicAccessLevel -ne "None") {
-                            Write-Host "=== Public Storage Found ===`n[+] Subscription '$($subscriptionObj.Name)' `n[+] Storage Account '$accountName' `n[+] Container '$($container.Name)' has public access level:" -ForegroundColor Green
-                            Write-Host "$publicAccessLevel`n" -ForegroundColor Red
+                            $subResults += [PSCustomObject]@{
+                                SubscriptionName    = $subscriptionName
+                                StorageAccountName  = $accountName
+                                ResourceGroupName   = $resourceGroup
+                                ContainerName       = $container.Name
+                                AnonymousAccessType = $publicAccessLevel
+                            }
+
+                            # Output a progress message if a publicly accessible container is found.
+                            if ($publicAccessLevel -ne "None") {
+                                Write-Host "=== Public Storage Found ===`n[+] Subscription '$subscriptionName' `n[+] Storage Account '$accountName' `n[+] Container '$($container.Name)' has public access level:" -ForegroundColor Green
+                                Write-Host "$publicAccessLevel`n" -ForegroundColor Red
+                            }
+                        }
+                        catch {
+                            # Catch errors from Get-AzStorageContainerAcl
+                            $errorMessage = $_.Exception.Message
+                            if ($errorMessage -match "403" -or $errorMessage -match "AuthorizationFailure") {
+                                $anonAccess = "Inconclusive: insufficient permissions"
+                            }
+                            else {
+                                $anonAccess = "Failed"
+                            }
+                            $subResults += [PSCustomObject]@{
+                                SubscriptionName    = $subscriptionName
+                                StorageAccountName  = $accountName
+                                ResourceGroupName   = $resourceGroup
+                                ContainerName       = $container.Name
+                                AnonymousAccessType = $anonAccess
+                            }
                         }
                     }
                 }
             }
             catch {
-                # Check the exception message.
+                # Catch errors from Get-AzStorageContainer or other storage account level issues.
                 $errorMessage = $_.Exception.Message
-                if ($errorMessage -match "AuthorizationFailure") {
-                    $accessResult = "Inconclusive: Network restrictions in-place"
+                if ($errorMessage -match "403" -or $errorMessage -match "AuthorizationFailure") {
+                    $anonAccess = "Inconclusive: insufficient permissions"
                 }
                 else {
-                    $accessResult = "Failed"
+                    $anonAccess = "Failed"
                 }
                 $subResults += [PSCustomObject]@{
-                    SubscriptionName    = $subscriptionObj.Name
+                    SubscriptionName    = $subscriptionName
                     StorageAccountName  = $storageAccount.StorageAccountName
                     ResourceGroupName   = $storageAccount.ResourceGroupName
                     ContainerName       = "N/A"
-                    AnonymousAccessType = $accessResult
+                    AnonymousAccessType = $anonAccess
                 }
             }
         }
