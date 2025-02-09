@@ -1,4 +1,4 @@
-# Invoke-AzSAContainerListPublicAccess.ps1  
+# Invoke-AzSAListPublicAccess.ps1  
 **(PowerShell 7+) List Azure Storage Account Container and Blob Public Access**
 > [!NOTE]
 > - Compatible with non-Windows PowerShell (pwsh)
@@ -8,12 +8,12 @@
 ---
 
 ## Overview  
-The `Invoke-AzSAContainerListPublicAccess.ps1` script is designed to automate the execution of commands across multiple Azure Storage Accounts (SAs). This script will use Role-Base Access Control (RBAC) access (as opposed to Key-Authentication, as this may be disabled) to query access control configurations on Storage Account Containers and Blobs.  
+The `Invoke-AzSAListPublicAccess.ps1` script is designed to automate the execution of commands across multiple Azure Storage Accounts (SAs). This script will use Role-Base Access Control (RBAC) access (as opposed to Key-Authentication, as this may be disabled) to query access control configurations on Storage Account Containers and Blobs.  
 
 ## Prerequisites  
 To use this script, you need the following:  
 
-- **Az PowerShell SDK**: Authenticate with `Connect-AzAccount` before launching `Invoke-AzSAContainerListPublicAccess.ps1`.
+- **Az PowerShell SDK**: Authenticate with `Connect-AzAccount` before launching `Invoke-AzSAListPublicAccess.ps1`.
 - **Azure RBAC Reader**: The identity to use with the `Az SDK` requires atleast "Storage Account Contributor" to run `Get-AzStorageContainerAcl` on the subscriptions, resource group, or resource(s) in-scope.
   
 ## Usage  
@@ -23,7 +23,7 @@ To use this script, you need the following:
 
    ```powershell
    git clone https://github.com/fjodoin/AzureRT.git
-   cd ./AzureRT/Invoke-AzSAContainerListPublicAccess
+   cd ./AzureRT/Invoke-AzSAListPublicAccess
    pwsh
    ```
 
@@ -33,7 +33,7 @@ To use this script, you need the following:
 - Run the script
 
    ```powershell
-   .\Invoke-AzSAContainerListPublicAccess.ps1
+   .\Invoke-AzSAListPublicAccess.ps1
    ```
 
  ![image](https://github.com/user-attachments/assets/4e782055-519a-49ce-a52b-9ef9de266e89)
