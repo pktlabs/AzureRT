@@ -40,7 +40,8 @@ pwsh
 Invoke-AzVMInfo
 ```
 
-![image](https://github.com/user-attachments/assets/e0f23eb3-928a-4a04-b18f-47fd40409a19)
+![image](https://github.com/user-attachments/assets/6c3a0698-0421-41c5-a87f-409ad4c6b63e)
+
 
 
 ```powershell
