@@ -17,9 +17,7 @@ To use this script, you need the following:
 - **Azure RBAC Reader**: The identity to use with the `Az SDK` requires atleast "Storage Account Contributor" to run `Get-AzStorageContainerAcl` on the subscriptions, resource group, or resource(s) in-scope.
   
 ## Usage  
-1. Clone or download this repository.  
-2. Change into the according directory.  
-3. Fire-up a PowerShell 7+ session  
+- Clone the repo and start `pwsh`
 
   ```powershell
   git clone https://github.com/fjodoin/AzureRT.git
@@ -30,11 +28,10 @@ To use this script, you need the following:
   ![image](https://github.com/user-attachments/assets/ef41c444-dc37-4358-8e29-be660e4eb9b4)
 
 
-
 - Run the script
 
   ```powershell
-  .\Invoke-AzSAListPublicAccess.ps1
+  ./Invoke-AzSAListPublicAccess.ps1
   ```
 
   ![image](https://github.com/user-attachments/assets/c724574b-52e4-40a5-8203-d9ebf884d110)
