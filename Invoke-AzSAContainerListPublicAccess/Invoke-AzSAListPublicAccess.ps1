@@ -5,30 +5,28 @@
 .DESCRIPTION
     This script connects to Azure, retrieves specified subscriptions (or all enabled ones if none are provided), 
     and lists the public access levels of all blob containers in each storage account within those subscriptions. 
-    It generates an HTML report with the results, marking any failed storage account queries as "Failed".
+    It generates an HTML report with the results, marking any failed storage account queries as "Failed".  
+    It also outputs a “HIT” message to the console every time a container with public access is discovered.
 
 .PARAMETER SubscriptionIds
     Optional. Specifies one or more Subscription IDs to filter the scan.
 
 .NOTES
-    Author: Filip Jodoin
-    Date: Jan. 20, 2025
-    Version: 0.3
-
-.EXAMPLE
-    .\Invoke-AzSAContainerListPublicAccess.ps1 -SubscriptionIds "sub-id-1","sub-id-2"
+    Author: Filip Jodoin (modified by ChatGPT)
+    Date: Feb. 08, 2025
+    Version: 0.4
 #>
 
 param(
     [string[]]$SubscriptionIds
 )
 
-# Connect to Azure
+# Uncomment this line if you need to log in to Azure
 # Connect-AzAccount
 
-Write-Host "Script execution started: any hits will be displayed below ..." -ForegroundColor Green
+Write-Host "Script execution started: any HITs will be displayed below ..." -ForegroundColor Green
 
-# Get the subscriptions
+# Get all enabled subscriptions
 $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq 'Enabled' }
 
 if (-not $subscriptions) {
@@ -36,99 +34,104 @@ if (-not $subscriptions) {
     return
 }
 
-# If Subscription IDs were provided, filter the list
+# If SubscriptionIds were provided, filter the list
 if ($SubscriptionIds) {
     $subscriptions = $subscriptions | Where-Object { $_.Id -in $SubscriptionIds }
 }
 
-# Filter out invalid subscriptions with missing IDs
-$validSubscriptions = $subscriptions | Where-Object { $_.Id -ne $null -and $_.Id -ne "" }
+# Filter out any subscriptions with missing IDs
+$validSubscriptions = $subscriptions | Where-Object { $_.Id -and ($_.Id -ne "") }
 
 if (-not $validSubscriptions) {
     Write-Host "No valid subscriptions found." -ForegroundColor Yellow
     return
 }
 
-# Define a script block for job processing
-$scriptBlock = {
-    param(
-        $subscription
-    )
+# ============================================================
+# Use ForEach-Object -Parallel to process each subscription concurrently.
+# (Requires PowerShell 7 or later)
+# ============================================================
+$finalResults = $validSubscriptions | ForEach-Object -Parallel {
+    # Import required modules in the parallel runspace
+    Import-Module Az.Accounts -ErrorAction Stop
+    Import-Module Az.Storage -ErrorAction Stop
 
-    Import-Module Az.Accounts
-    Import-Module Az.Storage
-
-    if (-not $subscription.Id) {
-        Write-Host "Skipping subscription with missing ID: $($subscription.Name)" -ForegroundColor Red
+    # If for some reason the subscription object is missing an ID, skip it.
+    if (-not $_.Id) {
+        Write-Host "Skipping subscription with missing ID: $($_.Name)" -ForegroundColor Red
         return
     }
+    
+    # Switch context to the current subscription
+    Set-AzContext -SubscriptionId $_.Id | Out-Null
 
-    $null = Set-AzContext -SubscriptionId $subscription.Id
-
+    # Get all storage accounts in the subscription
     $storageAccounts = Get-AzStorageAccount | Select-Object StorageAccountName, ResourceGroupName
-    $resultList = @()
+    $subResults = @()
 
     if ($storageAccounts) {
         foreach ($storageAccount in $storageAccounts) {
             try {
                 $accountName = $storageAccount.StorageAccountName
                 $resourceGroup = $storageAccount.ResourceGroupName
+
+                # Create a storage context using the connected account
                 $context = New-AzStorageContext -StorageAccountName $accountName -UseConnectedAccount
+
+                # Retrieve the list of blob containers
                 $containers = Get-AzStorageContainer -Context $context | Select-Object Name
                 if ($containers) {
                     foreach ($container in $containers) {
+                        # Get the container’s public access level.
                         $publicAccessLevel = (Get-AzStorageContainerAcl -Name $container.Name -Context $context).PublicAccess
                         if (-not $publicAccessLevel) {
                             $publicAccessLevel = "None"
-                        } elseif ($publicAccessLevel -eq "Blob") {
+                        }
+                        elseif ($publicAccessLevel -eq "Blob") {
                             $publicAccessLevel = "Blob"
-                        } elseif ($publicAccessLevel -eq "Container") {
+                        }
+                        elseif ($publicAccessLevel -eq "Container") {
                             $publicAccessLevel = "Container"
-                        } else {
+                        }
+                        else {
                             $publicAccessLevel = "Unknown ($publicAccessLevel)"
                         }
 
-                        $resultList += [PSCustomObject]@{
-                            SubscriptionName      = $subscription.Name
-                            StorageAccountName    = $accountName
-                            ResourceGroupName     = $resourceGroup
-                            ContainerName         = $container.Name
-                            AnonymousAccessType   = $publicAccessLevel
+                        # Build the result object (note: Type is not needed in the final HTML)
+                        $subResults += [PSCustomObject]@{
+                            SubscriptionName    = $_.Name
+                            StorageAccountName  = $accountName
+                            ResourceGroupName   = $resourceGroup
+                            ContainerName       = $container.Name
+                            AnonymousAccessType = $publicAccessLevel
+                        }
+
+                        # If the container is publicly accessible (a "HIT"), output a progress message.
+                        if ($publicAccessLevel -ne "None") {
+                            Write-Host "=== Pubic Storage Found ===`n[+] Subscription '$($_.Name)' `n[+] Storage Account '$accountName' `n[+] Container '$($container.Name)' has public access level:" -ForegroundColor Green
+                            Write-Host "$publicAccessLevel`n" -ForegroundColor Red
                         }
                     }
                 }
-            } catch {
-                $resultList += [PSCustomObject]@{
-                    SubscriptionName    = $subscription.Name
+            }
+            catch {
+                # On error, record a failed result for this storage account.
+                $subResults += [PSCustomObject]@{
+                    SubscriptionName    = $_.Name
                     StorageAccountName  = $storageAccount.StorageAccountName
                     ResourceGroupName   = $storageAccount.ResourceGroupName
                     ContainerName       = "N/A"
-                    AnonymousAccessType   = "Failed"
+                    AnonymousAccessType = "Failed"
                 }
             }
         }
     }
-    return $resultList
-}
+    return $subResults
+} -ThrottleLimit 5
 
-$jobs = @()
-foreach ($subscription in $validSubscriptions) {
-    $jobs += Start-Job -ScriptBlock $scriptBlock -ArgumentList $subscription
-}
-
-Write-Host "Waiting for all jobs to complete..." -ForegroundColor Yellow
-$null = $jobs | ForEach-Object { Wait-Job -Job $_ }
-
-$finalResults = @()
-foreach ($job in $jobs) {
-    if ($job.State -eq 'Completed') {
-        $finalResults += Receive-Job -Job $job
-        Remove-Job -Job $job
-    } else {
-        Write-Host "Job with ID $($job.Id) is not finished, skipping removal." -ForegroundColor Red
-    }
-}
-
+# ============================================================
+# Generate the HTML report.
+# ============================================================
 $htmlRows = ""
 foreach ($result in $finalResults) {
     $htmlRows += "<tr>"
@@ -177,12 +180,12 @@ $htmlContent = @"
     <script>
         `$(document).ready(function () {
             `$('#blobTable').DataTable({
-                colReorder: true,       // Enable column reordering
-                fixedHeader: true,      // Keep header fixed while scrolling
-                paging: true,           // Enable pagination
-                searching: true,        // Enable search/filter functionality
-                responsive: true,       // Make table responsive
-                order: [[0, "asc"]],    // Default sort by Subscription Name
+                colReorder: true,
+                fixedHeader: true,
+                paging: true,
+                searching: true,
+                responsive: true,
+                order: [[0, "asc"]],
                 columnDefs: [
                     { width: '20%', targets: 0 },
                     { width: '20%', targets: 1 },
@@ -196,7 +199,7 @@ $htmlContent = @"
 
 </head>
 <body>
-    <h1 style="color: #007FFF;">Azure Blob Public Access Report</h1>
+    <h1 style="color: #007FFF;">🪣 Azure Storage Account Access Report 📝</h1>
     
     <div class="table-container">
         <table id="blobTable" class="display nowrap">
@@ -219,8 +222,7 @@ $htmlRows
 </html>
 "@
 
-
-
+# Save the report to disk and launch it in the default browser.
 $htmlPath = "AzureBlobPublicAccessReport.html"
 $htmlContent | Out-File -FilePath $htmlPath -Encoding UTF8
 Write-Host "Report generated: $htmlPath" -ForegroundColor Green
