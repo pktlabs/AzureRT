@@ -34,7 +34,7 @@ pwsh
 
 ```powershell
 # 4. Load the function 
-. .\Invoke-AzVMInfo.ps1
+. ./Invoke-AzVMInfo.ps1
 
 # 5. Run the function
 Invoke-AzVMInfo
