@@ -27,7 +27,8 @@ To use this script, you need the following:
    pwsh
    ```
 
-   ![image](https://github.com/user-attachments/assets/7421624a-0d53-4d9f-86eb-cf3370624d42)
+   ![image](https://github.com/user-attachments/assets/ef41c444-dc37-4358-8e29-be660e4eb9b4)
+
 
 
 - Run the script
