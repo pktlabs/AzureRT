@@ -46,7 +46,8 @@ To use this script, you need the following:
   # 6. Investigate your Azure VM network info report!
   ```
 
-  ![image](https://github.com/user-attachments/assets/a2506c23-0280-4a77-beef-806888e7ceca)
+ ![image](https://github.com/user-attachments/assets/7135075c-638c-4b8a-9009-b154bca21a00)
+
 
 
 
