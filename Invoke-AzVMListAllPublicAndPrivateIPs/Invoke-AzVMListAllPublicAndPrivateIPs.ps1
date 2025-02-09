@@ -1,48 +1,42 @@
-<#
-.SYNOPSIS
-Retrieves public and private IPs, NSGs, and related metadata for all Azure VMs in specified subscriptions.
-
-.DESCRIPTION
-This script connects to the specified Azure subscriptions, scans all virtual machines, and retrieves their public and private IP addresses, network security group (NSG) rules, and associated metadata. If no specific subscription is provided, the script processes all enabled subscriptions.
-
-The output includes the following details:
-- Subscription name
-- VM name
-- Public and private IPs
-- Power state
-- Virtual network name (VNet)
-- Subnet range
-- Network Security Group (NSG) rules, including source, destination, protocol, and allowed ports.
-
-The results are displayed in an HTML report that includes filtering and sorting capabilities.
-
-.NOTES
-    Author: Filip Jodoin
-    Date: Jan. 21, 2025
-    Version: 0.0
-
-.EXAMPLE
-# Run the script for all enabled subscriptions and save the report to the default location:
-.\Invoke-AzVMListAllPublicAndPrivateIPs.ps1
-#>
-
 function Invoke-AzVMListAllPublicAndPrivateIPs {
     [CmdletBinding()]
-    param ()
+    param (
+        [Parameter(Mandatory = $false)]
+        [string[]]$SubscriptionIds,
+
+        [Parameter(Mandatory = $false)]
+        [string]$VMListFilePath
+    )
 
     $ErrorActionPreference = 'Stop'
-
     Write-Host "Script execution started. Collecting data..." -ForegroundColor Green
 
     try {
         Import-Module -Name Az -ErrorAction Stop
 
-        # Get all enabled subscriptions
-        $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq 'Enabled' } | Select-Object -Property Id, Name
+        # Get all enabled subscriptions or filter by provided subscription IDs
+        if ($SubscriptionIds) {
+            $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq 'Enabled' -and $SubscriptionIds -contains $_.Id }
+        }
+        else {
+            $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq 'Enabled' }
+        }
 
         if (-not $subscriptions) {
             Write-Host "No enabled subscriptions found. Exiting." -ForegroundColor Yellow
             return
+        }
+
+        # Read VM names from the provided file if any
+        $vmNamesToCheck = @()
+        if ($VMListFilePath) {
+            if (Test-Path $VMListFilePath) {
+                $vmNamesToCheck = Get-Content -Path $VMListFilePath
+            }
+            else {
+                Write-Host "VM list file not found. Exiting." -ForegroundColor Yellow
+                return
+            }
         }
 
         $results = @()
@@ -51,96 +45,139 @@ function Invoke-AzVMListAllPublicAndPrivateIPs {
             Write-Host "Processing subscription: $($subscription.Name)" -ForegroundColor Cyan
 
             try {
+                # Switch subscription
                 Select-AzSubscription -SubscriptionId $subscription.Id -ErrorAction Stop | Out-Null
 
-                # Fetch all VMs with status and network profile
+                # Get VMs (with status & network profile)
                 $vms = Get-AzVM -Status | Select-Object Name, ResourceGroupName, NetworkProfile, PowerState
 
                 foreach ($vm in $vms) {
+                    # Skip if a list of VMs is provided and this one is not in it
+                    if ($vmNamesToCheck -and ($vmNamesToCheck -notcontains $vm.Name)) {
+                        continue
+                    }
+
                     $vmName = $vm.Name
-                    $resourceGroupName = $vm.ResourceGroupName
+                    $vmRG = $vm.ResourceGroupName
                     $powerState = $vm.PowerState -replace "^PowerState/", ""
 
                     foreach ($nicReference in $vm.NetworkProfile.NetworkInterfaces) {
-                        $nicName = ($nicReference.Id -split '/')[-1]
-                        $nic = Get-AzNetworkInterface -Name $nicName -ResourceGroupName $resourceGroupName -ErrorAction SilentlyContinue
+                        # Parse NIC name and resource group from its ID (format: /subscriptions/.../resourceGroups/{rg}/providers/Microsoft.Network/networkInterfaces/{nicName})
+                        $nicIdParts = $nicReference.Id -split '/'
+                        $nicName = $nicIdParts[-1]
+                        $nicRG = $nicIdParts[4]
+
+                        $nic = Get-AzNetworkInterface -Name $nicName -ResourceGroupName $nicRG -ErrorAction SilentlyContinue
+                        if (-not $nic) { continue }
 
                         foreach ($ipConfig in $nic.IpConfigurations) {
-                            $publicIpAddress = $null
                             $privateIpAddress = $ipConfig.PrivateIpAddress
+                            $publicIpAddress = $null
 
+                            # Get Public IP if assigned
                             if ($ipConfig.PublicIpAddress) {
-                                $publicIpName = ($ipConfig.PublicIpAddress.Id -split '/')[-1]
-                                $publicIp = Get-AzPublicIpAddress -Name $publicIpName -ResourceGroupName $resourceGroupName -ErrorAction SilentlyContinue
-                                $publicIpAddress = $publicIp.IpAddress
+                                $publicIpIdParts = $ipConfig.PublicIpAddress.Id -split '/'
+                                $publicIpName = $publicIpIdParts[-1]
+                                $publicIpRG = $publicIpIdParts[4]
+                                $publicIp = Get-AzPublicIpAddress -Name $publicIpName -ResourceGroupName $publicIpRG -ErrorAction SilentlyContinue
+                                if ($publicIp) {
+                                    $publicIpAddress = $publicIp.IpAddress
+                                }
                             }
 
-                            $subnet = Get-AzVirtualNetworkSubnetConfig -ResourceId $ipConfig.Subnet.Id -ErrorAction SilentlyContinue
-                            $subnetRange = ($subnet.AddressPrefix -join ", ")
-                            $vnetName = ($ipConfig.Subnet.Id -split '/')[8]
+                            # Parse virtual network and subnet details from ipConfig.Subnet.Id 
+                            # Expected format: /subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}
+                            $subnetIdParts = $ipConfig.Subnet.Id -split '/'
+                            $vnetRG = $subnetIdParts[4]
+                            $vnetName = $subnetIdParts[8]
+                            $subnetName = $subnetIdParts[10]
 
-                            # Get NSG rules
-                            $nsgRules = @()
+                            # Retrieve the virtual network and then the subnet configuration
+                            $vnet = Get-AzVirtualNetwork -Name $vnetName -ResourceGroupName $vnetRG -ErrorAction SilentlyContinue
+                            $subnet = $vnet.Subnets | Where-Object { $_.Name -eq $subnetName }
+                            $subnetRange = if ($subnet -and $subnet.AddressPrefix) { $subnet.AddressPrefix } else { "N/A" }
+
+                            # --- Collect NSG rules from both NIC and Subnet ---
+                            $nsgRulesList = @()
+
+                            # Check if the NIC has an associated NSG
                             if ($nic.NetworkSecurityGroup) {
-                                $nsgName = ($nic.NetworkSecurityGroup.Id -split '/')[-1]
-                                $nsg = Get-AzNetworkSecurityGroup -Name $nsgName -ResourceGroupName $resourceGroupName -ErrorAction SilentlyContinue
-                                $nsgRules = $nsg.SecurityRules | Select-Object Name, Direction, Access, Protocol, SourceAddressPrefix, DestinationAddressPrefix, DestinationPortRange
-                            } elseif ($subnet.NetworkSecurityGroup) {
-                                $nsgName = ($subnet.NetworkSecurityGroup.Id -split '/')[-1]
-                                $nsg = Get-AzNetworkSecurityGroup -Name $nsgName -ResourceGroupName $resourceGroupName -ErrorAction SilentlyContinue
-                                $nsgRules = $nsg.SecurityRules | Select-Object Name, Direction, Access, Protocol, SourceAddressPrefix, DestinationAddressPrefix, DestinationPortRange
-                            }
-
-                            $inboundRules = $nsgRules | Where-Object {
-                                $_.Direction -eq "Inbound" -and $_.Access -eq "Allow"
-                            }
-
-                            foreach ($rule in $inboundRules) {
-                                $source = ($rule.SourceAddressPrefix -join ", ")
-                                $destination = ($rule.DestinationAddressPrefix -join ", ")
-                                $ports = ($rule.DestinationPortRange -join ", ")
-
-                                $results += [PSCustomObject]@{
-                                    Subscription    = $subscription.Name
-                                    VMName          = $vmName
-                                    PublicIP        = $publicIpAddress
-                                    PrivateIP       = $privateIpAddress
-                                    State           = $powerState
-                                    VNetName        = $vnetName
-                                    SubnetRange     = $subnetRange
-                                    Source          = $source
-                                    Destination     = $destination
-                                    Protocol        = $rule.Protocol
-                                    Ports           = $ports
+                                $nicNsgIdParts = $nic.NetworkSecurityGroup.Id -split '/'
+                                $nicNsgName = $nicNsgIdParts[-1]
+                                $nicNsgRG = $nicNsgIdParts[4]
+                                $nicNsg = Get-AzNetworkSecurityGroup -Name $nicNsgName -ResourceGroupName $nicNsgRG -ErrorAction SilentlyContinue
+                                if ($nicNsg) {
+                                    foreach ($rule in $nicNsg.SecurityRules) {
+                                        $nsgRulesList += [PSCustomObject]@{
+                                            From        = "NIC"
+                                            RuleName    = $rule.Name
+                                            Direction   = $rule.Direction
+                                            Access      = $rule.Access
+                                            Protocol    = $rule.Protocol
+                                            Source      = $rule.SourceAddressPrefix
+                                            Destination = $rule.DestinationAddressPrefix
+                                            Ports       = $rule.DestinationPortRange
+                                        }
+                                    }
                                 }
                             }
 
-                            if (-not $inboundRules) {
-                                $results += [PSCustomObject]@{
-                                    Subscription    = $subscription.Name
-                                    VMName          = $vmName
-                                    PublicIP        = $publicIpAddress
-                                    PrivateIP       = $privateIpAddress
-                                    State           = $powerState
-                                    VNetName        = $vnetName
-                                    SubnetRange     = $subnetRange
-                                    Source          = "N/A"
-                                    Destination     = "N/A"
-                                    Protocol        = "N/A"
-                                    Ports           = "N/A"
+                            # Check if the subnet has an associated NSG
+                            if ($subnet -and $subnet.NetworkSecurityGroup) {
+                                $subnetNsgIdParts = $subnet.NetworkSecurityGroup.Id -split '/'
+                                $subnetNsgName = $subnetNsgIdParts[-1]
+                                $subnetNsgRG = $subnetNsgIdParts[4]
+                                $subnetNsg = Get-AzNetworkSecurityGroup -Name $subnetNsgName -ResourceGroupName $subnetNsgRG -ErrorAction SilentlyContinue
+                                if ($subnetNsg) {
+                                    foreach ($rule in $subnetNsg.SecurityRules) {
+                                        $nsgRulesList += [PSCustomObject]@{
+                                            From        = "Subnet"
+                                            RuleName    = $rule.Name
+                                            Direction   = $rule.Direction
+                                            Access      = $rule.Access
+                                            Protocol    = $rule.Protocol
+                                            Source      = $rule.SourceAddressPrefix
+                                            Destination = $rule.DestinationAddressPrefix
+                                            Ports       = $rule.DestinationPortRange
+                                        }
+                                    }
                                 }
+                            }
+
+                            # Aggregate the NSG rules into a formatted HTML string (or show "N/A" if none)
+                            if ($nsgRulesList.Count -gt 0) {
+                                $nsgRulesFormatted = $nsgRulesList | ForEach-Object {
+                                    "[ $($_.From) ] $($_.RuleName): $($_.Direction) | $($_.Access) | Protocol: $($_.Protocol) | Src: $($_.Source) | Dst: $($_.Destination) | Ports: $($_.Ports)"
+                                }
+                                $nsgRulesAggregated = $nsgRulesFormatted -join "<br>"
+                            }
+                            else {
+                                $nsgRulesAggregated = "N/A"
+                            }
+
+                            # Save the result for this IP configuration
+                            $results += [PSCustomObject]@{
+                                Subscription = $subscription.Name
+                                VMName       = $vmName
+                                PublicIP     = $publicIpAddress
+                                PrivateIP    = $privateIpAddress
+                                State        = $powerState
+                                VNetName     = $vnetName
+                                SubnetRange  = $subnetRange
+                                NSGRules     = $nsgRulesAggregated
                             }
                         }
                     }
                 }
-            } catch {
+            }
+            catch {
                 Write-Error "Error processing subscription $($subscription.Name): $($_.Exception.Message)"
             }
         }
 
         Write-Host "Generating HTML report..." -ForegroundColor Green
 
-        # Generate table rows manually
+        # Build HTML table rows
         $htmlRows = ""
         foreach ($result in $results) {
             $htmlRows += "<tr>"
@@ -151,28 +188,24 @@ function Invoke-AzVMListAllPublicAndPrivateIPs {
             $htmlRows += "<td>$($result.State)</td>"
             $htmlRows += "<td>$($result.VNetName)</td>"
             $htmlRows += "<td>$($result.SubnetRange)</td>"
-            $htmlRows += "<td>$($result.Source)</td>"
-            $htmlRows += "<td>$($result.Destination)</td>"
-            $htmlRows += "<td>$($result.Protocol)</td>"
-            $htmlRows += "<td>$($result.Ports)</td>"
+            $htmlRows += "<td>$($result.NSGRules)</td>"
             $htmlRows += "</tr>"
         }
 
-        # Combine the HTML components
-        $htmlHeader = @"
+        # Construct full HTML content
+        $htmlContent = @"
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Azure VM Info Report: Public and Private IPs</title>
+    <title>Azure VM Info Report: NSG Rules, Public and Private IPs</title>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
         th { background-color: #007FFF; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         tr:hover { background-color: #f1f1f1; }
-        input { width: 100%; box-sizing: border-box; }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
@@ -186,7 +219,7 @@ function Invoke-AzVMListAllPublicAndPrivateIPs {
     </script>
 </head>
 <body>
-    <h1 style="color: #007FFF;">Azure VM Info Report: Public and Private IPs</h1>
+    <h1 style="color: #007FFF;">Azure VM Info Report: NSG Rules, Public and Private IPs</h1>
     <table id="nsgTable" class="display" style="width:100%">
         <thead>
             <tr>
@@ -197,10 +230,7 @@ function Invoke-AzVMListAllPublicAndPrivateIPs {
                 <th>State</th>
                 <th>VNet Name</th>
                 <th>Subnet Range</th>
-                <th>Source</th>
-                <th>Destination</th>
-                <th>Protocol</th>
-                <th>Ports</th>
+                <th>NSG Rules</th>
             </tr>
         </thead>
         <tbody>
@@ -211,13 +241,13 @@ $htmlRows
 </html>
 "@
 
-        # Save and display the HTML report
+        # Save the HTML report and open it
         $htmlPath = "AzureVMInfoReport_PublicAndPrivateIPs.html"
-        $htmlHeader | Out-File -FilePath $htmlPath -Encoding UTF8
+        $htmlContent | Out-File -FilePath $htmlPath -Encoding UTF8
         Write-Host "Report generated: $htmlPath" -ForegroundColor Green
         Start-Process $htmlPath
-
-    } catch {
+    }
+    catch {
         Write-Error "An error occurred: $($_.Exception.Message)"
     }
 }
