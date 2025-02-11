@@ -16,9 +16,9 @@ Below is a table of tools and scripts included in this repository, along with th
 |Tool/Script Name|Description|Link|
 |---|---|---|
 |**azure_resource_graph.py**|Build an Azure Resource Graph to visualize blindspots e.g. Key Vault Access Policies|[azure_resource_graph](./azure_resource_graph)|
-|**Invoke-AzSAContainerListPublicAccess.ps1**|Find Azure Storage Account Containers and Blobs with Public Access|[Invoke-AzSAContainerListPublicAccess](./Invoke-AzSAContainerListPublicAccess)|
+|**Invoke-AzSAContainerListPublicAccess.ps1**|Find Azure Storage Account Containers and Blobs with Public Access|[Invoke-AzSAListPublicAccess](./Invoke-AzSAListPublicAccess)|
 |**Invoke-AzVMBulkRunCommand.ps1**|Automates bulk execution of commands across multiple Azure Virtual Machines|[Invoke-AzVMBulkRunCommand](./Invoke-AzVMBulkRunCommand)|
-|**Invoke-AzVMListAllPublicAndPrivateIPs.ps1**|Generates an HTML report to visualize Azure Virtual Machines Network Info|[Invoke-AzVMListAllPublicAndPrivateIPs](./Invoke-AzVMListAllPublicAndPrivateIPs)|
+|**Invoke-AzVMListAllPublicAndPrivateIPs.ps1**|Generates an HTML report to visualize Azure Virtual Machines Network Info|[Invoke-AzVMInfo](./Invoke-AzVMInfo)|
 
 ---
 > [!NOTE]
