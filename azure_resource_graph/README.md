@@ -48,7 +48,8 @@ To use this script, you need the following:
 
 
    ```bash
-   # 4. Fire-up npm to host the Web App and navigate to http://127.0.0.1:3000
+   # 4. Install npm modules and fire-up npm debugger to host the Web App; it will navigate to http://127.0.0.1:3000
+   npm install
    npm run start
 
    # 5. Upload the output_azure_resource_data.json
