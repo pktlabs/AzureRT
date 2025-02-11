@@ -41,7 +41,7 @@ To use this script, you need the following:
    
    ```bash
    # 3. Run the script (ensure that you are already authenticated with the az cli through "az login")
-   python3 azure_resource_graph.py
+   python3 azure_resource_graph_collector.py
    ```
 
    [image]
