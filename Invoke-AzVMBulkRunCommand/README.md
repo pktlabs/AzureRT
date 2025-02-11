@@ -15,8 +15,9 @@ The `Invoke-AzVMBulkRunCommand.ps1` script is designed to automate the execution
 To use this script, you need the following:  
 
 1. **Az PowerShell SDK**: Authenticate with `Connect-AzAccount` before launching `Invoke-AzVMBulkRunCommand.ps1`.
-2. **Scripts Directory**: Ensure that a directory named `Scripts` is present in the same folder as `Invoke-AzVMBulkRunCommand.ps1`.  
-3. **Required Scripts** (located in the `Scripts` directory):  
+2. **Azure RBAC VM Contributor or RunCommand rights**: The identity to use with the `Az SDK` requires atleast the `"Microsoft.Compute/virtualMachines/runCommands/action"` permission, or a contributor-type role such as `"Virtual Machine Contributor"` or `"Contributor"`, on the subscriptions, resource groups, or resources in-scope.
+3. **Scripts Directory**: Ensure that a directory named `Scripts` is present in the same folder as `Invoke-AzVMBulkRunCommand.ps1`.  
+4. **Required Scripts** (located in the `Scripts` directory):  
    - `Invoke-WindowsScript.ps1`: Handles the execution of commands on Windows VMs.  
    - `run_linux_script.sh`: Handles the execution of commands on Linux VMs.
   

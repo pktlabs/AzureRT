@@ -1,19 +1,30 @@
-# A.R.G. - azure_resource_graph.py
+A.R.G. - azure_resource_graph.py
 > [!NOTE]
 > - Compatible with Python 3.12+
 > - Sheds light on Azurehound blindspots
 > - `az cli` wrapper 🌯
 > - Inspired by @andyrobbins work on [AzureHound](https://github.com/SpecterOps/AzureHound)
 
+> [!WARNING]
+> 🏗️ WIP 🏗️
+> - [x] Fix the "Search and Category" filters >.>
+> - [x] Remove duplicate edges
+> - [ ] Make nodes "movable" as opposed to fluid
+> - [x] Add all Resource Groups and map Access Control to Identities
+> - [x] Add all Subscriptions and map Access Control to Identities
+> - [x] Show Custom Azure RBAC Role assigned to Managed Identities
+> - [ ] Containerize frontend - node modules are taking up a lot of space
+
 ---
 
 ## Overview  
-The `azure_resource_graph.py` script is designed build a graph-view of Node-Edge relationships across multiple Azure resources to help shed light on potential blindspots, such as Storage Account access control.  
+The `azure_resource_graph.py` script is designed to build a graph-view through Node-Edge relationships across multiple Azure resources to help shed light on potential blindspots, such as Storage Account access control, visualized with `Sigma.js`.
 
 ## Prerequisites  
 To use this script, you need the following:
 
 - **az cli**: Authenticate with `az login` before launching `azure_resource_graph.py`.
+- **Azure RBAC Reader**: The identity to use with the `az cli` requires atleast "Reader" on the subscriptions in-scope.
 
 ## Usage
 
@@ -23,35 +34,32 @@ To use this script, you need the following:
 
    # 2. Change into the according directory.
    cd ./AzureRT/azure_resource_graph
-
-   # 3. Fire-up a Python3 virtual environment
-   python3 -m venv arg_venv ; source arg_venv/bin/activate # You may have to install Python3 Virtual Environments with "sudo apt install python3.12-venv"
-
-   # 4. Install all the dependies
-   python3 -m pip install -r requirements.txt
    ```
 
-   ![image](https://github.com/user-attachments/assets/2207a6cb-120e-4e95-818f-424b0b734f5a)
-
-
+   ![image](https://github.com/user-attachments/assets/733e9ce5-c2c9-4884-8031-3ac87c2f0976)
 
    
    ```bash
-   # 5. Run the script (ensure that you are already authenticate with the az cli through "az login")
+   # 3. Run the script (ensure that you are already authenticated with the az cli through "az login")
    python3 azure_resource_graph.py
    ```
 
-   ![image](https://github.com/user-attachments/assets/6d83d836-3c1e-402f-a868-37ea1a24d6bc)
+   [image]
 
 
    ```bash
-   # 6. Fire-up a Python3 Web Server and navigate to the newly generated "azure_resource_graph.HTML" file
-   python3 -m http.server 1337
+   # 4. Install npm modules and fire-up npm debugger to host the Web App; it will navigate to http://127.0.0.1:3000
+   npm install
+   npm run start
 
-   # 7. Navigate to http://127.0.0.1:1337/azure_resource_graph.html in your favorite browser
+   # 5. Upload the output_azure_resource_data.json
    ```
 
-   ![image](https://github.com/user-attachments/assets/5a06c41d-de30-4dab-8cca-077b739502f4)
+![image](https://github.com/user-attachments/assets/b5c1e12d-3d6c-4603-9dd9-d9ce54d1c7a6)
+
+
+
+
 
 
 
