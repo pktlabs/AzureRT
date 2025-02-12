@@ -8,7 +8,7 @@
 ---
 
 ## Overview  
-The `Invoke-AzRBACListCustomRoles.ps1` script is designed to automate the execution of commands all assets. This script will use Role-Base Access Control (RBAC) access to query Custom Azure RBAC configurations on Subscriptions, Resource Groups.  
+The `Invoke-AzRBACListCustomRoles.ps1` script is designed to automate the collection of Custom Azure RBAC Roles on all assets. This script will use Role-Base Access Control (RBAC) access to query Custom Azure RBAC configurations on Subscriptions, Resource Groups.  
 
 ## Prerequisites  
 To use this script, you need the following:  
