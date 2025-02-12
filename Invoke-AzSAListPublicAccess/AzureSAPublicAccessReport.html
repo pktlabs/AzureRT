@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure Storage Account Public Access Report</title>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+    
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100% !important; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #007FFF; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        
+        /* Ensure the table container is responsive */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+    </style>
+
+    <!-- jQuery and DataTables -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#blobTable').DataTable({
+                colReorder: true,
+                fixedHeader: true,
+                paging: true,
+                searching: true,
+                responsive: true,
+                order: [[0, "asc"]],
+                columnDefs: [
+                    { width: '20%', targets: 0 },
+                    { width: '20%', targets: 1 },
+                    { width: '20%', targets: 2 },
+                    { width: '20%', targets: 3 },
+                    { width: '20%', targets: 4 }
+                ]
+            });
+        });
+    </script>
+
+</head>
+<body>
+    <h1 style="color: #007FFF;">🪣 Azure Storage Account Access Report 📝</h1>
+    
+    <div class="table-container">
+        <table id="blobTable" class="display nowrap">
+            <thead>
+                <tr>
+                    <th>Subscription</th>
+                    <th>Storage Account</th>
+                    <th>Resource Group</th>
+                    <th>Container Name</th>
+                    <th>Public Access Level</th>
+                </tr>
+            </thead>
+            <tbody>
+<tr><td>Microsoft Azure Sponsorship</td><td>configbackupfiles</td><td>mbt-rg-15</td><td>peterfiles</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>integrationproject</td><td>mbt-rg-18</td><td>project-resources</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtfileshr</td><td>mbt-rg-13</td><td>candidate-resumes</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtfinancials</td><td>mbt-rg-16</td><td>finance-reports</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtresearch</td><td>mbt-rg-11</td><td>research-files</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7808a</td><td>mbt-rg-7</td><td>azure-webjobs-hosts</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7808a</td><td>mbt-rg-7</td><td>azure-webjobs-secrets</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg78f51</td><td>mbt-rg-7</td><td>azure-webjobs-hosts</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg78f51</td><td>mbt-rg-7</td><td>azure-webjobs-secrets</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7a151</td><td>mbt-rg-7</td><td>azure-webjobs-hosts</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7a151</td><td>mbt-rg-7</td><td>azure-webjobs-secrets</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7a423</td><td>mbt-rg-7</td><td>azure-webjobs-hosts</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7a423</td><td>mbt-rg-7</td><td>azure-webjobs-secrets</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7a423</td><td>mbt-rg-7</td><td>scm-releases</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7b4ca</td><td>mbt-rg-7</td><td>azure-webjobs-hosts</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7b4ca</td><td>mbt-rg-7</td><td>azure-webjobs-secrets</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7b4ca</td><td>mbt-rg-7</td><td>scm-releases</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7b9fb</td><td>mbt-rg-7</td><td>azure-webjobs-hosts</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7b9fb</td><td>mbt-rg-7</td><td>azure-webjobs-secrets</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtrg7b9fb</td><td>mbt-rg-7</td><td>scm-releases</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>mbtwebsite</td><td>content-static-2</td><td>$web</td><td>Container</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>megabigtechconf</td><td>mbt-rg-11</td><td>public</td><td>Container</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>megabigtechinternal</td><td>mbt-rg-12</td><td>data</td><td>Container</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>megablueconfig</td><td>PwnedCrCtf</td><td>data-private</td><td>Container</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>principalstorage7</td><td>mbt-rg-10</td><td>azure-webjobs-hosts</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>principalstorage7</td><td>mbt-rg-10</td><td>azure-webjobs-secrets</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>principalstorage7</td><td>mbt-rg-10</td><td>scm-releases</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>securityconfigs</td><td>content-static-2</td><td>security-pc</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>storageqaenv</td><td>mbt-rg-1</td><td>general-purpose</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>storageqaenv</td><td>mbt-rg-1</td><td>patent-documents</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>storageqaenv</td><td>mbt-rg-1</td><td>server-files</td><td>None</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>legalappf4a548aaf8</td><td>mbt-rg-26</td><td>bloblegalappf4a548aaf8</td><td>Blob</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

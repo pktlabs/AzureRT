@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Custom Azure RBAC Roles Report</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+        th { background-color: #007FFF; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        $('#rolesTable').DataTable({
+            orderCellsTop: true,
+            fixedHeader: true
+        });
+    });
+    </script>
+</head>
+<body>
+    <h1 style="color: #007FFF;">🍲 Custom Azure RBAC Roles Report 📝</h1>
+    <table id="rolesTable" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>Subscription Name</th>
+                <th>Role Name</th>
+                <th>Description</th>
+                <th>Assigned Users/Groups/Service Principals</th>
+                <th>Permissions</th>
+                <th>Scope</th>
+            </tr>
+        </thead>
+        <tbody>
+<tr><td>Microsoft Azure Sponsorship</td><td>Customer Database Access</td><td>Provides access to the Mega Big Tech customer list and information about customers</td><td>CUSTOMER-DATABASE-ACCESS (Group)</td><td>Microsoft.Storage/storageAccounts/tableServices/tables/read</td><td>/subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/content-static-2</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>Security Access</td><td></td><td></td><td>*/read<br> Microsoft.Compute/virtualMachines/read</td><td>No assignments found. Role defined with assignable scope(s): /subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/content-static-2</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>Virtual Machine Custom Helper</td><td>custom role for VM diagnostic and troubleshooting</td><td></td><td>*/read<br> Microsoft.SerialConsole/operations/read<br> Microsoft.SerialConsole/serialPorts/connect/action<br> Microsoft.Compute/virtualMachines/runCommand/action</td><td>No assignments found. Role defined with assignable scope(s): /subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94, /subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/mbt-rg-8</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>ContainerAppSecretsReader</td><td>Allows accessing Container App secrets</td><td>Edrian Taylor (User)</td><td>microsoft.app/jobs/listsecrets/action<br> microsoft.app/containerapps/listsecrets/action<br> microsoft.app/containerapps/authconfigs/read<br> microsoft.app/containerapps/getauthtoken/action<br> microsoft.app/containerapps/stop/action<br> microsoft.app/containerapps/read<br> microsoft.app/containerapps/start/action<br> microsoft.app/containerapps/revisions/replicas/read<br> microsoft.app/containerapps/revisions/read<br> microsoft.app/containerapps/revisions/restart/action<br> microsoft.app/containerapps/revisions/activate/action<br> microsoft.app/containerapps/revisions/deactivate/action</td><td>/subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/mbt-rg-14</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>Allow run-commands</td><td></td><td>Monica Turner (User)</td><td>Microsoft.Compute/virtualMachines/runCommands/read</td><td>/subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>DevOpsCustomRole</td><td>Allows accessing Container App secrets</td><td>Rohit Kumar (User)</td><td>microsoft.app/jobs/listsecrets/action<br> microsoft.app/containerapps/listsecrets/action<br> microsoft.app/containerapps/authconfigs/read<br> microsoft.app/containerapps/getauthtoken/action<br> microsoft.app/containerapps/stop/action<br> microsoft.app/containerapps/read<br> microsoft.app/containerapps/start/action<br> microsoft.app/containerapps/revisions/replicas/read<br> microsoft.app/containerapps/revisions/read<br> microsoft.app/containerapps/revisions/restart/action<br> microsoft.app/containerapps/revisions/activate/action<br> microsoft.app/containerapps/revisions/deactivate/action</td><td>/subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/mbt-rg-17</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>Custom Reader for Managed Environments</td><td>Allows reading managed environments within Microsoft App.</td><td>Rohit Kumar (User)</td><td>Microsoft.App/managedEnvironments/read</td><td>/subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/mbt-rg-17/providers/Microsoft.App/managedEnvironments/payments</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>Allow run-commands2</td><td></td><td>Monica Turner (User)</td><td>Microsoft.Compute/virtualMachines/runCommands/write<br> Microsoft.Compute/virtualMachines/runCommand/action</td><td>/subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/mbt-rg-16</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>Crypto Operator</td><td>Role used by Crypto Team members to perform cryptographic operations</td><td></td><td>Microsoft.KeyVault/vaults/read<br> Microsoft.KeyVault/vaults/keys/read</td><td>No assignments found. Role defined with assignable scope(s): /subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/mbt-rg-21</td></tr><tr><td>Microsoft Azure Sponsorship</td><td>List Static Web App Settings</td><td></td><td>International Asset Management (Mega Big Tech MSSP Support) (User)</td><td>Microsoft.Web/staticSites/listappsettings/Action</td><td>/subscriptions/ceff06cb-e29d-4486-a3ae-eaaec5689f94/resourceGroups/mbt-rg-22</td></tr>
+        </tbody>
+    </table>
+</body>
+</html>
