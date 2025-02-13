@@ -35,7 +35,7 @@ To use this script, you need the following:
   Invoke-AzSAListPublicAccess
   ```
 
-  ![image](https://github.com/user-attachments/assets/c724574b-52e4-40a5-8203-d9ebf884d110)
+  <img width="1324" alt="image" src="https://github.com/user-attachments/assets/b998b0e5-40b6-4552-aca4-59dc8cc0104d" />
 
 - Protect your assets!
 
