@@ -28,10 +28,10 @@ To use this script, you need the following:
   ![image](https://github.com/user-attachments/assets/ef41c444-dc37-4358-8e29-be660e4eb9b4)
 
 
-- Import and Run the script
+- Import the Function and Run the script
 
   ```powershell
-  . ./Invoke-AzSAListPublicAccess
+  . ./Invoke-AzSAListPublicAccess.ps1
   Invoke-AzSAListPublicAccess
   ```
 
