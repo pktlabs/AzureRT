@@ -232,8 +232,8 @@ function Invoke-AzSAListPublicAccess {
     <script src="https://cdn.jsdelivr.net/npm/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.min.js"></script>
 
     <script>
-        $(document).ready(function () {
-            $('#blobTable').DataTable({
+        `$(document).ready(function () {
+            `$('#blobTable').DataTable({
                 colReorder: true,
                 fixedHeader: true,
                 paging: true,
@@ -249,7 +249,7 @@ function Invoke-AzSAListPublicAccess {
                 ]
             });
             // Enable resizable columns on the table
-            $('#blobTable').resizableColumns();
+            `$('#blobTable').resizableColumns();
         });
     </script>
 
