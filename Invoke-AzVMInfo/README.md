@@ -50,7 +50,8 @@ Invoke-AzVMInfo
 
  ![image](https://github.com/user-attachments/assets/7135075c-638c-4b8a-9009-b154bca21a00)
 
- ![image](https://github.com/user-attachments/assets/c73bde55-291b-4e2f-a031-0b66e0cabf17)
+ ![image](https://github.com/user-attachments/assets/b42c0528-8083-442c-b873-871ba9de7640)
+
 
 
 
