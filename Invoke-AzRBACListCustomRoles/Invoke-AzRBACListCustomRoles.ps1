@@ -140,13 +140,13 @@ function Invoke-AzRBACListCustomRoles {
     <!-- jquery-resizable-columns JS -->
     <script src="https://cdn.jsdelivr.net/npm/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.min.js"></script>
     <script>
-        $(document).ready(function () {
-            var table = $('#rolesTable').DataTable({
+        `$(document).ready(function () {
+            var table = `$('#rolesTable').DataTable({
                 orderCellsTop: true,
                 fixedHeader: true
             });
             // Enable adjustable (resizable) columns on the table.
-            $('#rolesTable').resizableColumns();
+            `$('#rolesTable').resizableColumns();
         });
     </script>
 </head>
