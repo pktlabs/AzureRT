@@ -48,8 +48,8 @@ function Invoke-AzVMInfo {
                 # Switch subscription
                 Select-AzSubscription -SubscriptionId $subscription.Id -ErrorAction Stop | Out-Null
 
-                # Get VMs (with status & network profile)
-                $vms = Get-AzVM -Status | Select-Object Name, ResourceGroupName, NetworkProfile, PowerState
+                # Get VMs (with status, network profile and OS profile)
+                $vms = Get-AzVM -Status
 
                 foreach ($vm in $vms) {
                     # Skip if a list of VMs is provided and this one is not in it
@@ -61,8 +61,27 @@ function Invoke-AzVMInfo {
                     $vmRG = $vm.ResourceGroupName
                     $powerState = $vm.PowerState -replace "^PowerState/", ""
 
+                    # Retrieve User Data using the -UserData parameter
+                    $userData = "N/A"
+                    try {
+                        $vmWithUserData = Get-AzVM -ResourceGroupName $vmRG -Name $vmName -UserData -ErrorAction SilentlyContinue
+                        if ($vmWithUserData -and $vmWithUserData.UserData) {
+                            try {
+                                # Decode the base64 encoded user data
+                                $userData = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($vmWithUserData.UserData))
+                            }
+                            catch {
+                                # If decoding fails, fallback to the raw data
+                                $userData = $vmWithUserData.UserData
+                            }
+                        }
+                    }
+                    catch {
+                        Write-Verbose "Could not fetch user data for VM $vmName in resource group ${vmRG}: $($_.Exception.Message)"
+                    }
+
                     foreach ($nicReference in $vm.NetworkProfile.NetworkInterfaces) {
-                        # Parse NIC name and resource group from its ID (format: /subscriptions/.../resourceGroups/{rg}/providers/Microsoft.Network/networkInterfaces/{nicName})
+                        # Parse NIC name and resource group from its ID 
                         $nicIdParts = $nicReference.Id -split '/'
                         $nicName = $nicIdParts[-1]
                         $nicRG = $nicIdParts[4]
@@ -155,16 +174,18 @@ function Invoke-AzVMInfo {
                                 $nsgRulesAggregated = "N/A"
                             }
 
-                            # Save the result for this IP configuration
+                            # Save the result for this IP configuration, including the Resource Group and decoded User Data
                             $results += [PSCustomObject]@{
-                                Subscription = $subscription.Name
-                                VMName       = $vmName
-                                PublicIP     = $publicIpAddress
-                                PrivateIP    = $privateIpAddress
-                                State        = $powerState
-                                VNetName     = $vnetName
-                                SubnetRange  = $subnetRange
-                                NSGRules     = $nsgRulesAggregated
+                                Subscription  = $subscription.Name
+                                VMName        = $vmName
+                                ResourceGroup = $vmRG
+                                PublicIP      = $publicIpAddress
+                                PrivateIP     = $privateIpAddress
+                                State         = $powerState
+                                VNetName      = $vnetName
+                                SubnetRange   = $subnetRange
+                                NSGRules      = $nsgRulesAggregated
+                                UserData      = $userData
                             }
                         }
                     }
@@ -182,6 +203,7 @@ function Invoke-AzVMInfo {
         foreach ($result in $results) {
             $htmlRows += "<tr>"
             $htmlRows += "<td>$($result.Subscription)</td>"
+            $htmlRows += "<td>$($result.ResourceGroup)</td>"
             $htmlRows += "<td>$($result.VMName)</td>"
             $htmlRows += "<td>$($result.PublicIP)</td>"
             $htmlRows += "<td>$($result.PrivateIP)</td>"
@@ -189,16 +211,20 @@ function Invoke-AzVMInfo {
             $htmlRows += "<td>$($result.VNetName)</td>"
             $htmlRows += "<td>$($result.SubnetRange)</td>"
             $htmlRows += "<td>$($result.NSGRules)</td>"
+            $htmlRows += "<td>$($result.UserData)</td>"
             $htmlRows += "</tr>"
         }
 
-        # Construct full HTML content
+        # Construct full HTML content with resizable columns using jquery-resizable-columns
         $htmlContent = @"
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Azure VM Info Report: NSG Rules, Public and Private IPs</title>
+    <title>Azure VM Info Report: NSG Rules, Public & Private IPs, Resource Group, and User Data</title>
+    <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <!-- jquery-resizable-columns CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.css">
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         table { border-collapse: collapse; width: 100%; }
@@ -207,23 +233,28 @@ function Invoke-AzVMInfo {
         tr:nth-child(even) { background-color: #f9f9f9; }
         tr:hover { background-color: #f1f1f1; }
     </style>
+    <!-- jQuery, DataTables, and jquery-resizable-columns -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.min.js"></script>
     <script>
     `$(document).ready(function () {
         `$('#nsgTable').DataTable({
             orderCellsTop: true,
             fixedHeader: true
         });
+        // Enable column resizing using jquery-resizable-columns
+        `$('#nsgTable').resizableColumns();
     });
     </script>
 </head>
 <body>
-    <h1 style="color: #007FFF;">🖥️ Azure VM Info Report: NSG Rules, Public and Private IPs 📝</h1>
+    <h1 style="color: #007FFF;">🖥️ Azure VM Info Report: NSG Rules, Public & Private IPs, Resource Group, and User Data 📝</h1>
     <table id="nsgTable" class="display" style="width:100%">
         <thead>
             <tr>
                 <th>Subscription</th>
+                <th>Resource Group</th>
                 <th>VM Name</th>
                 <th>Public IP</th>
                 <th>Private IP</th>
@@ -231,6 +262,7 @@ function Invoke-AzVMInfo {
                 <th>VNet Name</th>
                 <th>Subnet Range</th>
                 <th>NSG Rules</th>
+                <th>User Data</th>
             </tr>
         </thead>
         <tbody>
