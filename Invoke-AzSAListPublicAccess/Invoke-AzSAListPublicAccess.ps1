@@ -192,6 +192,7 @@ function Invoke-AzSAListPublicAccess {
         $htmlRows += "</tr>"
     }
 
+    # HTML content with adjustable (resizable) columns
     $htmlContent = @"
 <!DOCTYPE html>
 <html>
@@ -204,7 +205,9 @@ function Invoke-AzSAListPublicAccess {
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
-    
+    <!-- jquery-resizable-columns CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.css">
+
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         table { width: 100% !important; }
@@ -225,10 +228,12 @@ function Invoke-AzSAListPublicAccess {
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+    <!-- jquery-resizable-columns -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.min.js"></script>
 
     <script>
-        `$(document).ready(function () {
-            `$('#blobTable').DataTable({
+        $(document).ready(function () {
+            $('#blobTable').DataTable({
                 colReorder: true,
                 fixedHeader: true,
                 paging: true,
@@ -243,6 +248,8 @@ function Invoke-AzSAListPublicAccess {
                     { width: '20%', targets: 4 }
                 ]
             });
+            // Enable resizable columns on the table
+            $('#blobTable').resizableColumns();
         });
     </script>
 
