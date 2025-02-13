@@ -116,30 +116,38 @@ function Invoke-AzRBACListCustomRoles {
         $htmlRows += "</tr>"
     }
 
-    # Construct full HTML content with DataTables configuration.
+    # Construct full HTML content with adjustable (resizable) columns.
     $htmlContent = @"
 <!DOCTYPE html>
 <html>
 <head>
     <title>Custom Azure RBAC Roles Report</title>
+    <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <!-- jquery-resizable-columns CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.css">
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; text-align: left; }
         th { background-color: #007FFF; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         tr:hover { background-color: #f1f1f1; }
     </style>
+    <!-- jQuery and DataTables -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <!-- jquery-resizable-columns JS -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.min.js"></script>
     <script>
-    `$(document).ready(function () {
-        `$('#rolesTable').DataTable({
-            orderCellsTop: true,
-            fixedHeader: true
+        $(document).ready(function () {
+            var table = $('#rolesTable').DataTable({
+                orderCellsTop: true,
+                fixedHeader: true
+            });
+            // Enable adjustable (resizable) columns on the table.
+            $('#rolesTable').resizableColumns();
         });
-    });
     </script>
 </head>
 <body>
