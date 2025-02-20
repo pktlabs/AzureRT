@@ -1,9 +1,3 @@
-param (
-    [string[]]$SubscriptionIds,
-    [string]$ResourceGroup,
-    [string]$VMNames
-)
-
 <#
 .SYNOPSIS
 Runs custom scripts on specific or all running Azure VMs in specified subscriptions and resource groups.
@@ -31,6 +25,13 @@ This script connects to the specified Azure subscriptions, retrieves VMs based o
 .\Invoke-AzVMBulkRunCommand.ps1 -SubscriptionIds <subscriptionId1> -ResourceGroup <resourceGroup>
 .\Invoke-AzVMBulkRunCommand.ps1 -VMNames file.txt
 #>
+
+param (
+    [string[]]$SubscriptionIds,
+    [string]$ResourceGroup,
+    [string]$VMNames
+)
+
 
 try {
     # Validate parameters

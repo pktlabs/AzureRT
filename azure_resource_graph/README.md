@@ -18,7 +18,7 @@ A.R.G. - azure_resource_graph.py
 ---
 
 ## Overview  
-The `azure_resource_graph.py` script is designed to build a graph-view through Node-Edge relationships across multiple Azure resources to help shed light on potential blindspots, such as Storage Account access control, visualized with `Sigma.js`.
+The `Azure Resource Graph (🏴‍☠️ ARG 🏴‍☠️)` designed to build a graph-view through Node-Edge relationships across multiple Azure resources to help shed light on potential blindspots, such as Storage Account access control, visualized with `Sigma.js`.
 
 ## Prerequisites  
 To use this script, you need the following:
@@ -42,12 +42,7 @@ To use this script, you need the following:
    ```bash
    # 3. Run the script (ensure that you are already authenticated with the az cli through "az login")
    python3 azure_resource_graph_collector.py
-   ```
-
-   [image]
-
-
-   ```bash
+   
    # 4. Install npm modules and fire-up npm debugger to host the Web App; it will navigate to http://127.0.0.1:3000
    npm install
    npm run start

@@ -28,13 +28,14 @@ To use this script, you need the following:
   ![image](https://github.com/user-attachments/assets/ef41c444-dc37-4358-8e29-be660e4eb9b4)
 
 
-- Run the script
+- Import the Function and Run the script
 
   ```powershell
-  ./Invoke-AzSAListPublicAccess.ps1
+  . ./Invoke-AzSAListPublicAccess.ps1
+  Invoke-AzSAListPublicAccess
   ```
 
-  ![image](https://github.com/user-attachments/assets/c724574b-52e4-40a5-8203-d9ebf884d110)
+  <img width="1324" alt="image" src="https://github.com/user-attachments/assets/b998b0e5-40b6-4552-aca4-59dc8cc0104d" />
 
 - Protect your assets!
 
